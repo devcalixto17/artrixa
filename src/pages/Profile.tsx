@@ -12,6 +12,8 @@ import { DownloadCard } from "@/components/cards/DownloadCard";
 import { EditProfileDialog } from "@/components/profile/EditProfileDialog";
 import { RoleBadge } from "@/components/profile/RoleBadge";
 import { UserBadges } from "@/components/profile/UserBadges";
+import { NotificationsSection } from "@/components/profile/NotificationsSection";
+import { SendMessageDialog } from "@/components/profile/SendMessageDialog";
 import { useAuth } from "@/hooks/useAuth";
 
 const Profile = () => {
@@ -146,14 +148,19 @@ const Profile = () => {
                 <UserBadges userId={userId!} />
               </div>
 
-              {isOwnProfile && (
-                <div className="sm:absolute sm:top-4 sm:right-4">
+              <div className="sm:absolute sm:top-4 sm:right-4 flex gap-2">
+                {isOwnProfile ? (
                   <EditProfileDialog profile={profile} />
-                </div>
-              )}
+                ) : (
+                  <SendMessageDialog recipientId={userId!} recipientName={profile.username || "Usuário"} />
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
+
+        {/* Notifications Section - Only for own profile */}
+        {isOwnProfile && <NotificationsSection />}
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
