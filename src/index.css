@@ -1,0 +1,185 @@
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Dark gaming theme */
+    --background: 220 15% 8%;
+    --foreground: 60 10% 95%;
+
+    --card: 220 15% 12%;
+    --card-foreground: 60 10% 95%;
+
+    --popover: 220 15% 10%;
+    --popover-foreground: 60 10% 95%;
+
+    /* Neon green accent - main brand color */
+    --primary: 90 100% 50%;
+    --primary-foreground: 220 15% 8%;
+
+    --secondary: 220 15% 18%;
+    --secondary-foreground: 60 10% 95%;
+
+    --muted: 220 15% 20%;
+    --muted-foreground: 220 10% 60%;
+
+    --accent: 90 100% 50%;
+    --accent-foreground: 220 15% 8%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 60 10% 95%;
+
+    --border: 220 15% 20%;
+    --input: 220 15% 18%;
+    --ring: 90 100% 50%;
+
+    --radius: 0.5rem;
+
+    /* Custom gaming colors */
+    --neon-green: 90 100% 50%;
+    --neon-green-glow: 90 100% 60%;
+    --dark-surface: 220 15% 10%;
+    --darker-surface: 220 15% 6%;
+
+    /* Sidebar */
+    --sidebar-background: 220 15% 10%;
+    --sidebar-foreground: 60 10% 95%;
+    --sidebar-primary: 90 100% 50%;
+    --sidebar-primary-foreground: 220 15% 8%;
+    --sidebar-accent: 220 15% 18%;
+    --sidebar-accent-foreground: 60 10% 95%;
+    --sidebar-border: 220 15% 20%;
+    --sidebar-ring: 90 100% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--darker-surface));
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted));
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--primary));
+  }
+}
+
+@layer utilities {
+  /* Neon glow effects */
+  .neon-glow {
+    text-shadow: 0 0 10px hsl(var(--neon-green)),
+                 0 0 20px hsl(var(--neon-green)),
+                 0 0 40px hsl(var(--neon-green) / 0.5);
+  }
+
+  .neon-border {
+    box-shadow: 0 0 5px hsl(var(--neon-green) / 0.5),
+                0 0 10px hsl(var(--neon-green) / 0.3),
+                inset 0 0 5px hsl(var(--neon-green) / 0.1);
+  }
+
+  .card-hover {
+    @apply transition-all duration-300;
+  }
+
+  .card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 40px hsl(var(--neon-green) / 0.15),
+                0 0 20px hsl(var(--neon-green) / 0.1);
+  }
+
+  /* Gradient backgrounds */
+  .gradient-dark {
+    background: linear-gradient(180deg, 
+      hsl(var(--background)) 0%, 
+      hsl(var(--darker-surface)) 100%);
+  }
+
+  .gradient-card {
+    background: linear-gradient(135deg, 
+      hsl(var(--card)) 0%, 
+      hsl(var(--dark-surface)) 100%);
+  }
+
+  /* Animation keyframes */
+  @keyframes pulse-neon {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.7;
+    }
+  }
+
+  .animate-pulse-neon {
+    animation: pulse-neon 2s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  /* Role badge glow effects */
+  @keyframes ray-pulse {
+    0%, 100% {
+      opacity: 0.2;
+      transform: rotate(var(--rotation)) scaleX(0.5);
+    }
+    50% {
+      opacity: 0.8;
+      transform: rotate(var(--rotation)) scaleX(1.2);
+    }
+  }
+
+  .fundador-glow {
+    filter: drop-shadow(0 0 8px hsl(0 84% 60% / 0.6)) 
+            drop-shadow(0 0 16px hsl(0 84% 60% / 0.4));
+  }
+
+  .staff-glow {
+    filter: drop-shadow(0 0 8px hsl(217 91% 60% / 0.6)) 
+            drop-shadow(0 0 16px hsl(217 91% 60% / 0.4));
+  }
+
+  @keyframes lightning-flicker {
+    0%, 100% { opacity: 0.4; }
+    10% { opacity: 1; }
+    20% { opacity: 0.3; }
+    30% { opacity: 0.9; }
+    40% { opacity: 0.5; }
+    50% { opacity: 1; }
+    60% { opacity: 0.4; }
+    70% { opacity: 0.8; }
+    80% { opacity: 0.3; }
+    90% { opacity: 0.9; }
+  }
+}
