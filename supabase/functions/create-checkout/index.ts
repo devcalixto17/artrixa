@@ -25,6 +25,11 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
+    // Parse request body for payment method selection
+    const body = await req.json().catch(() => ({}));
+    const paymentMethod = body.payment_method || "card"; // "card" or "pix"
+    logStep("Payment method selected", { paymentMethod });
+
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("No authorization header provided");
 
@@ -48,8 +53,11 @@ serve(async (req) => {
       logStep("Found existing customer", { customerId });
     }
 
-    // Create subscription checkout session
-    const session = await stripe.checkout.sessions.create({
+    // Configure payment methods based on selection
+    const paymentMethodTypes = paymentMethod === "pix" ? ["pix"] : ["card"];
+    
+    // PIX only works with one-time payments, so we need different modes
+    const sessionConfig: any = {
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
       line_items: [
@@ -58,15 +66,32 @@ serve(async (req) => {
           quantity: 1,
         },
       ],
-      mode: "subscription",
       success_url: `${req.headers.get("origin")}/vip?status=success`,
       cancel_url: `${req.headers.get("origin")}/vip?status=failure`,
       metadata: {
         user_id: user.id,
+        payment_method: paymentMethod,
       },
-    });
+    };
 
-    logStep("Checkout session created", { sessionId: session.id, url: session.url });
+    if (paymentMethod === "pix") {
+      // PIX: One-time payment mode
+      sessionConfig.mode = "payment";
+      sessionConfig.payment_method_types = ["pix"];
+      sessionConfig.payment_method_options = {
+        pix: {
+          expires_after_seconds: 1800, // 30 minutes expiration
+        },
+      };
+    } else {
+      // Card: Subscription mode
+      sessionConfig.mode = "subscription";
+      sessionConfig.payment_method_types = ["card"];
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionConfig);
+
+    logStep("Checkout session created", { sessionId: session.id, url: session.url, mode: sessionConfig.mode });
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
