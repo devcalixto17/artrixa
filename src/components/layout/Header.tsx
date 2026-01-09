@@ -1,3 +1,5 @@
+"use client";
+
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,9 +42,7 @@ export const Header = () => {
     setIsSearchOpen(true);
     
     try {
-      // Cria um termo de busca flexível: "4fun" vira "%4%f%u%n%"
       const fuzzyQuery = `%${query.trim().split('').join('%')}%`;
-      // Também busca com a query original com coringas simples
       const simpleQuery = `%${query.trim().replace(/\s+/g, '%')}%`;
 
       const { data: downloads, error: downloadError } = await supabase
@@ -92,7 +92,6 @@ export const Header = () => {
     }
   };
 
-  // Fetch pending downloads count for admins
   const { data: pendingCount } = useQuery({
     queryKey: ["pending-downloads-count"],
     queryFn: async () => {
@@ -115,7 +114,7 @@ export const Header = () => {
 
       searchTimeoutRef.current = setTimeout(() => {
         performSearch(searchQuery);
-      }, 500); // Reduced from 10000 to 500ms for faster search
+      }, 500);
       
       return () => {
         if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
@@ -133,6 +132,11 @@ export const Header = () => {
     }
   };
 
+  const handleSignOut = async () => {
+    await signOut();
+    setMobileMenuOpen(false);
+  };
+
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4">
@@ -142,6 +146,7 @@ export const Header = () => {
             <span className="font-display text-2xl font-bold text-foreground"> MODS </span>
           </Link>
           
+          {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-1">
             {navLinks.map((link) => (
               <Link
@@ -155,6 +160,7 @@ export const Header = () => {
           </nav>
           
           <div className="flex items-center gap-4">
+            {/* Desktop Search */}
             <form onSubmit={handleSearchSubmit} className="hidden md:flex items-center gap-2 bg-secondary rounded-lg px-3 py-1">
               <button type="submit" className="hover:text-primary transition-colors">
                 <Search className="w-4 h-4 text-muted-foreground" />
@@ -168,7 +174,7 @@ export const Header = () => {
             </form>
             
             {user ? (
-              <div className="flex items-center gap-2">
+              <div className="hidden sm:flex items-center gap-2">
                 <Button variant="neon" size="sm" onClick={() => navigate("/downloads/new")}>
                   <Plus className="w-4 h-4" />
                   <span className="hidden sm:inline">Publicar</span>
@@ -188,7 +194,7 @@ export const Header = () => {
                     )}
                   </Button>
                 )}
-                <Button variant="ghost" size="sm" onClick={signOut}>
+                <Button variant="ghost" size="sm" onClick={handleSignOut}>
                   <LogOut className="w-4 h-4" />
                   <span className="hidden sm:inline">Sair</span>
                 </Button>
@@ -200,12 +206,19 @@ export const Header = () => {
               </Button>
             )}
             
-            <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-              {mobileMenuOpen ? <X /> : <Menu />}
+            {/* Mobile Menu Button */}
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="lg:hidden"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
           </div>
         </div>
         
+        {/* Mobile Search */}
         <div className="md:hidden py-2">
           <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 bg-secondary rounded-lg px-3 py-1">
             <button type="submit" className="hover:text-primary transition-colors">
@@ -220,6 +233,96 @@ export const Header = () => {
           </form>
         </div>
       </div>
+      
+      {/* Mobile Navigation Menu */}
+      {mobileMenuOpen && (
+        <div className="lg:hidden bg-background border-t border-border">
+          <div className="px-4 py-2 space-y-1">
+            {navLinks.map((link) => (
+              <Link
+                key={link.path}
+                to={link.path}
+                className="block px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-secondary/50 rounded transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                {link.name}
+              </Link>
+            ))}
+            
+            {user ? (
+              <div className="pt-2 border-t border-border mt-2 space-y-2">
+                <Button 
+                  variant="neon" 
+                  size="sm" 
+                  className="w-full justify-start"
+                  onClick={() => {
+                    navigate("/downloads/new");
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Publicar
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="w-full justify-start"
+                  onClick={() => {
+                    navigate(`/profile/${user.id}`);
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  <User className="w-4 h-4 mr-2" />
+                  Perfil
+                </Button>
+                {(isAdmin || isFundador) && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="w-full justify-start relative"
+                    onClick={() => {
+                      navigate("/admin");
+                      setMobileMenuOpen(false);
+                    }}
+                  >
+                    <Shield className="w-4 h-4 mr-2" />
+                    {isFundador ? "Fundador" : "Admin"}
+                    {pendingCount && pendingCount > 0 && (
+                      <span className="absolute -top-1 -right-2 bg-destructive text-destructive-foreground text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                        {pendingCount > 9 ? "9+" : pendingCount}
+                      </span>
+                    )}
+                  </Button>
+                )}
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="w-full justify-start text-destructive hover:text-destructive"
+                  onClick={handleSignOut}
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sair
+                </Button>
+              </div>
+            ) : (
+              <div className="pt-2 border-t border-border mt-2">
+                <Button 
+                  variant="neon" 
+                  size="sm" 
+                  className="w-full justify-start"
+                  onClick={() => {
+                    navigate("/auth");
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  <User className="w-4 h-4 mr-2" />
+                  Entrar
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
       
       <Dialog open={isSearchOpen} onOpenChange={setIsSearchOpen}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
