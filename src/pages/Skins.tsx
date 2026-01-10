@@ -19,9 +19,12 @@ export default function Skins() {
     },
   });
 
+  const skinsCategoryIds = categories?.map(c => c.id) || [];
+
   const { data: downloads, isLoading } = useQuery({
-    queryKey: ["skins-downloads"],
+    queryKey: ["skins-downloads", skinsCategoryIds],
     queryFn: async () => {
+      if (skinsCategoryIds.length === 0) return [];
       const { data, error } = await supabase
         .from("downloads")
         .select(`
@@ -30,10 +33,12 @@ export default function Skins() {
           profiles:author_id(username, avatar_url)
         `)
         .eq("status", "approved")
+        .in("category_id", skinsCategoryIds)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
     },
+    enabled: skinsCategoryIds.length > 0,
   });
 
   const skinCategories = [

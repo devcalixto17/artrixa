@@ -87,6 +87,29 @@ serve(async (req) => {
           .insert({ user_id: user.id, role: "vip_diamante" });
         logStep("VIP role assigned to user");
       }
+
+      // Auto-assign VIP Diamante badge if not exists
+      const { data: vipBadge } = await supabaseClient
+        .from("badges")
+        .select("id")
+        .eq("name", "VIP Diamante")
+        .maybeSingle();
+
+      if (vipBadge) {
+        const { data: existingBadge } = await supabaseClient
+          .from("user_badges")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("badge_id", vipBadge.id)
+          .maybeSingle();
+
+        if (!existingBadge) {
+          await supabaseClient
+            .from("user_badges")
+            .insert({ user_id: user.id, badge_id: vipBadge.id });
+          logStep("VIP Diamante badge assigned to user");
+        }
+      }
     } else {
       logStep("No active subscription found");
     }
