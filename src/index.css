@@ -187,28 +187,35 @@
 @keyframes founderGlow {
   0% {
     background-position: 0% 50%;
+    filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.6));
   }
   50% {
     background-position: 100% 50%;
+    filter: drop-shadow(0 0 10px rgba(168, 85, 247, 0.9));
   }
   100% {
     background-position: 0% 50%;
+    filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.6));
   }
 }
 
 .founder-gradient {
   background: linear-gradient(
     90deg,
-    #ef4444,
-    #a855f7,
+    #ef4444,   /* red-500 */
+    #a855f7,   /* purple-500 */
     #ef4444
   );
-  background-size: 200% 200%;
-  animation: founderGlow 3s ease-in-out infinite;
+  background-size: 300% 300%;
+  animation: founderGlow 4s ease-in-out infinite;
 
-  background-clip: text;          /* padrão */
-  -webkit-background-clip: text;  /* Safari / Chrome */
+  background-clip: text;
+  -webkit-background-clip: text;
   color: transparent;
+
+  font-weight: 700;
+  letter-spacing: 0.3px;
 }
+
 
 
