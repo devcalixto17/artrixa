@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -8,16 +7,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Check, X, User, Calendar, ArrowLeft, Eye } from "lucide-react";
 import { format } from "date-fns";
@@ -25,12 +14,9 @@ import { ptBR } from "date-fns/locale";
 import { Link, Navigate } from "react-router-dom";
 
 export default function PendingDownloads() {
-  const { isAdmin, isLoading: authLoading, user } = useAuth();
+  const { isAdmin, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
-  const [rejectReason, setRejectReason] = useState("");
-  const [selectedDownload, setSelectedDownload] = useState<any>(null);
 
   const { data: pendingDownloads, isLoading } = useQuery({
     queryKey: ["pending-downloads"],
@@ -100,26 +86,15 @@ export default function PendingDownloads() {
     },
   });
 
-  // Reject mutation - updates status to 'rejected' and sends notification
+  // Reject mutation - deletes the publication
   const rejectMutation = useMutation({
-    mutationFn: async ({ download, reason }: { download: any; reason: string }) => {
-      // Update download status
+    mutationFn: async (id: string) => {
       const { error } = await supabase
         .from("downloads")
-        .update({ status: "rejected" })
-        .eq("id", download.id);
-      if (error) throw error;
+        .delete()
+        .eq("id", id);
 
-      // Send notification to author
-      if (download.author_id) {
-        const { error: notifError } = await supabase.from("user_notifications").insert({
-          user_id: download.author_id,
-          title: "Publicação Rejeitada",
-          message: `Sua publicação "${download.title}" foi rejeitada. Motivo: ${reason}`,
-          type: "rejection",
-        });
-        if (notifError) console.error("Failed to send notification:", notifError);
-      }
+      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pending-downloads"] });
@@ -128,12 +103,9 @@ export default function PendingDownloads() {
       queryClient.invalidateQueries({ queryKey: ["downloads-by-category"] });
       queryClient.invalidateQueries({ queryKey: ["skins-downloads"] });
       queryClient.invalidateQueries({ queryKey: ["recent-downloads"] });
-      setRejectDialogOpen(false);
-      setRejectReason("");
-      setSelectedDownload(null);
       toast({
         title: "Rejeitado",
-        description: "A publicação foi rejeitada e o autor foi notificado.",
+        description: "A publicação foi removida do site e do banco de dados.",
       });
     },
     onError: (error) => {
@@ -144,24 +116,6 @@ export default function PendingDownloads() {
       });
     },
   });
-
-  const openRejectDialog = (download: any) => {
-    setSelectedDownload(download);
-    setRejectReason("");
-    setRejectDialogOpen(true);
-  };
-
-  const handleReject = () => {
-    if (!selectedDownload || !rejectReason.trim()) {
-      toast({
-        title: "Motivo obrigatório",
-        description: "Por favor, informe o motivo da rejeição.",
-        variant: "destructive",
-      });
-      return;
-    }
-    rejectMutation.mutate({ download: selectedDownload, reason: rejectReason });
-  };
 
   if (authLoading) {
     return (
@@ -253,7 +207,7 @@ export default function PendingDownloads() {
                             size="sm"
                             variant="destructive"
                             className="gap-1"
-                            onClick={() => openRejectDialog(download)}
+                            onClick={() => rejectMutation.mutate(download.id)}
                             disabled={rejectMutation.isPending}
                           >
                             <X className="h-4 w-4" />
@@ -296,40 +250,6 @@ export default function PendingDownloads() {
         )}
       </div>
 
-      {/* Reject Dialog */}
-      <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Rejeitar Publicação</DialogTitle>
-            <DialogDescription>
-              Informe o motivo da rejeição. O autor será notificado.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <Label htmlFor="reason">Motivo da rejeição *</Label>
-            <Textarea
-              id="reason"
-              value={rejectReason}
-              onChange={(e) => setRejectReason(e.target.value)}
-              placeholder="Ex: Conteúdo duplicado, qualidade insuficiente, etc."
-              rows={4}
-              className="mt-2"
-            />
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>
-              Cancelar
-            </Button>
-            <Button 
-              variant="destructive" 
-              onClick={handleReject}
-              disabled={rejectMutation.isPending || !rejectReason.trim()}
-            >
-              {rejectMutation.isPending ? "Rejeitando..." : "Confirmar Rejeição"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </Layout>
   );
 }

@@ -495,10 +495,6 @@ const PendingBadge = () => {
 const NotificationsPanel = () => {
   const queryClient = useQueryClient();
 
-  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
-  const [rejectReason, setRejectReason] = useState("");
-  const [selectedDownload, setSelectedDownload] = useState<any | null>(null);
-
   const { data: pendingDownloads, isLoading } = useQuery({
     queryKey: ["pending-downloads"],
     queryFn: async () => {
@@ -560,25 +556,9 @@ const NotificationsPanel = () => {
   });
 
   const rejectMutation = useMutation({
-    mutationFn: async ({ download, reason }: { download: any; reason: string }) => {
-      const { error } = await supabase
-        .from("downloads")
-        .update({ status: "rejected" })
-        .eq("id", download.id);
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("downloads").delete().eq("id", id);
       if (error) throw error;
-
-      if (download.author_id) {
-        const { error: notifError } = await supabase.from("user_notifications").insert({
-          user_id: download.author_id,
-          title: "Publicação Rejeitada",
-          message: `Sua publicação "${download.title}" foi rejeitada. Motivo: ${reason}`,
-          type: "rejection",
-        });
-        if (notifError) {
-          // Não bloqueia a rejeição se a notificação falhar
-          console.error("Failed to send rejection notification:", notifError);
-        }
-      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pending-downloads"] });
@@ -588,30 +568,12 @@ const NotificationsPanel = () => {
       queryClient.invalidateQueries({ queryKey: ["downloads-by-category"] });
       queryClient.invalidateQueries({ queryKey: ["skins-downloads"] });
 
-      setRejectDialogOpen(false);
-      setRejectReason("");
-      setSelectedDownload(null);
-
-      toast.success("Publicação rejeitada e autor notificado.");
+      toast.success("Publicação rejeitada e removida do site.");
     },
     onError: (error) => {
       toast.error("Erro: " + error.message);
     },
   });
-
-  const openRejectDialog = (download: any) => {
-    setSelectedDownload(download);
-    setRejectReason("");
-    setRejectDialogOpen(true);
-  };
-
-  const handleReject = () => {
-    if (!selectedDownload || !rejectReason.trim()) {
-      toast.error("Informe o motivo da rejeição.");
-      return;
-    }
-    rejectMutation.mutate({ download: selectedDownload, reason: rejectReason.trim() });
-  };
 
   if (isLoading) {
     return (
@@ -688,7 +650,7 @@ const NotificationsPanel = () => {
                         size="sm"
                         variant="destructive"
                         className="gap-1"
-                        onClick={() => openRejectDialog(download)}
+                        onClick={() => rejectMutation.mutate(download.id)}
                         disabled={rejectMutation.isPending}
                       >
                         <X className="h-4 w-4" />
@@ -729,35 +691,6 @@ const NotificationsPanel = () => {
         ))}
       </div>
 
-      <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Rejeitar Publicação</DialogTitle>
-            <DialogDescription>
-              Informe o motivo da rejeição. O autor será notificado com a justificativa.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-2">
-            <Label htmlFor="reject-reason">Motivo da rejeição *</Label>
-            <Textarea
-              id="reject-reason"
-              value={rejectReason}
-              onChange={(e) => setRejectReason(e.target.value)}
-              placeholder="Ex: Conteúdo duplicado, link inválido, qualidade insuficiente, etc."
-              rows={4}
-              className="mt-2"
-            />
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>
-              Cancelar
-            </Button>
-            <Button variant="destructive" onClick={handleReject} disabled={rejectMutation.isPending || !rejectReason.trim()}>
-              {rejectMutation.isPending ? "Rejeitando..." : "Confirmar Rejeição"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </>
   );
 };
