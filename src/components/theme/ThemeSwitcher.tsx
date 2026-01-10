@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Palette } from "lucide-react";
 
-type ThemeColor = "green" | "purple" | "light";
+type ThemeColor = "green" | "purple" | "light" | "cyanPurpleDark";
 
 const themes = {
   green: {
@@ -35,6 +35,20 @@ const themes = {
     neonGreen: "220 90% 56%",
     neonGreenGlow: "220 90% 66%",
   },
+  cyanPurpleDark: {
+    name: "Ciano & Roxo Neon",
+    primary: "190 100% 50%",      // Ciano
+    accent: "270 100% 60%",       // Roxo neon
+    ring: "190 100% 55%",
+
+    neonGreen: "270 100% 60%",    // Roxo
+    neonGreenGlow: "270 100% 70%",
+
+    background: "230 20% 7%",     // preto azulado
+    foreground: "0 0% 98%",
+    card: "230 20% 10%",
+    border: "270 100% 50%",
+},
 };
 
 export const ThemeSwitcher = () => {
