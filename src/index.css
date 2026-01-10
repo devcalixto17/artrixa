@@ -183,3 +183,32 @@
     90% { opacity: 0.9; }
   }
 }
+
+@keyframes founderGlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.founder-gradient {
+  background: linear-gradient(
+    90deg,
+    #ef4444,
+    #a855f7,
+    #ef4444
+  );
+  background-size: 200% 200%;
+  animation: founderGlow 3s ease-in-out infinite;
+
+  background-clip: text;          /* padrão */
+  -webkit-background-clip: text;  /* Safari / Chrome */
+  color: transparent;
+}
+
+

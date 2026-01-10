@@ -60,7 +60,7 @@ export const DownloadCard = ({
   });
 
   const roleConfig: Record<string, { label: string; color: string }> = {
-    fundador: { label: "Fundador", color: "text-red-500" },
+    fundador: { label: "Fundador", color: "founder-gradient font-semibold" },
     admin: { label: "Admin", color: "text-yellow-500" },
     staff: { label: "Staff", color: "text-blue-500" },
     user: { label: "Usuário", color: "text-muted-foreground" },
