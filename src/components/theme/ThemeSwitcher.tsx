@@ -37,18 +37,16 @@ const themes = {
   },
   cyanPurpleDark: {
     name: "Ciano & Roxo Neon",
-    primary: "190 100% 50%",      // Ciano
-    accent: "270 100% 60%",       // Roxo neon
+    primary: "190 100% 50%",
+    accent: "270 100% 60%",
     ring: "190 100% 55%",
-
-    neonGreen: "270 100% 60%",    // Roxo
+    neonGreen: "270 100% 60%",
     neonGreenGlow: "270 100% 70%",
-
-    background: "230 20% 7%",     // preto azulado
+    background: "230 20% 7%",
     foreground: "0 0% 98%",
     card: "230 20% 10%",
     border: "270 100% 50%",
-},
+  },
 };
 
 export const ThemeSwitcher = () => {
@@ -64,6 +62,7 @@ export const ThemeSwitcher = () => {
 
   const applyTheme = (themeName: ThemeColor) => {
     const theme = themes[themeName];
+    const themeAny = theme as any; // 👈 cast seguro
     const root = document.documentElement;
 
     root.style.setProperty("--primary", theme.primary);
@@ -74,48 +73,18 @@ export const ThemeSwitcher = () => {
     root.style.setProperty("--sidebar-primary", theme.primary);
     root.style.setProperty("--sidebar-ring", theme.ring);
 
-    // For light theme, also change background colors
     if (themeName === "light") {
       root.style.setProperty("--background", "0 0% 98%");
       root.style.setProperty("--foreground", "220 15% 15%");
       root.style.setProperty("--card", "0 0% 100%");
       root.style.setProperty("--card-foreground", "220 15% 15%");
-      root.style.setProperty("--popover", "0 0% 100%");
-      root.style.setProperty("--popover-foreground", "220 15% 15%");
-      root.style.setProperty("--muted", "220 15% 92%");
-      root.style.setProperty("--muted-foreground", "220 10% 40%");
       root.style.setProperty("--border", "220 15% 85%");
-      root.style.setProperty("--input", "220 15% 90%");
-      root.style.setProperty("--secondary", "220 15% 92%");
-      root.style.setProperty("--secondary-foreground", "220 15% 15%");
-      root.style.setProperty("--dark-surface", "0 0% 96%");
-      root.style.setProperty("--darker-surface", "0 0% 94%");
-      root.style.setProperty("--sidebar-background", "0 0% 98%");
-      root.style.setProperty("--sidebar-foreground", "220 15% 15%");
-      root.style.setProperty("--sidebar-accent", "220 15% 92%");
-      root.style.setProperty("--sidebar-accent-foreground", "220 15% 15%");
-      root.style.setProperty("--sidebar-border", "220 15% 85%");
     } else {
-      // Dark theme colors
-      root.style.setProperty("--background", "220 15% 8%");
-      root.style.setProperty("--foreground", "60 10% 95%");
-      root.style.setProperty("--card", "220 15% 12%");
-      root.style.setProperty("--card-foreground", "60 10% 95%");
-      root.style.setProperty("--popover", "220 15% 10%");
-      root.style.setProperty("--popover-foreground", "60 10% 95%");
-      root.style.setProperty("--muted", "220 15% 20%");
-      root.style.setProperty("--muted-foreground", "220 10% 60%");
-      root.style.setProperty("--border", "220 15% 20%");
-      root.style.setProperty("--input", "220 15% 18%");
-      root.style.setProperty("--secondary", "220 15% 18%");
-      root.style.setProperty("--secondary-foreground", "60 10% 95%");
-      root.style.setProperty("--dark-surface", "220 15% 10%");
-      root.style.setProperty("--darker-surface", "220 15% 6%");
-      root.style.setProperty("--sidebar-background", "220 15% 10%");
-      root.style.setProperty("--sidebar-foreground", "60 10% 95%");
-      root.style.setProperty("--sidebar-accent", "220 15% 18%");
-      root.style.setProperty("--sidebar-accent-foreground", "60 10% 95%");
-      root.style.setProperty("--sidebar-border", "220 15% 20%");
+      root.style.setProperty("--background", themeAny.background ?? "220 15% 8%");
+      root.style.setProperty("--foreground", themeAny.foreground ?? "60 10% 95%");
+      root.style.setProperty("--card", themeAny.card ?? "220 15% 12%");
+      root.style.setProperty("--card-foreground", themeAny.foreground ?? "60 10% 95%");
+      root.style.setProperty("--border", themeAny.border ?? "220 15% 20%");
     }
   };
 
@@ -140,26 +109,31 @@ export const ThemeSwitcher = () => {
           <Palette className="h-5 w-5" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-40">
-        <DropdownMenuItem
-          onClick={() => handleThemeChange("green")}
-          className={`gap-2 ${currentTheme === "green" ? "bg-accent" : ""}`}
-        >
-          <div className="w-4 h-4 rounded-full" style={{ background: "hsl(90 100% 50%)" }} />
+
+      <DropdownMenuContent align="end" className="w-44">
+        <DropdownMenuItem onClick={() => handleThemeChange("green")}>
+          <div className="w-4 h-4 rounded-full bg-[hsl(90_100%_50%)]" />
           Verde Neon
         </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => handleThemeChange("purple")}
-          className={`gap-2 ${currentTheme === "purple" ? "bg-accent" : ""}`}
-        >
-          <div className="w-4 h-4 rounded-full" style={{ background: "hsl(270 100% 60%)" }} />
+
+        <DropdownMenuItem onClick={() => handleThemeChange("purple")}>
+          <div className="w-4 h-4 rounded-full bg-[hsl(270_100%_60%)]" />
           Roxo Neon
         </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => handleThemeChange("light")}
-          className={`gap-2 ${currentTheme === "light" ? "bg-accent" : ""}`}
-        >
-          <div className="w-4 h-4 rounded-full border" style={{ background: "white" }} />
+
+        <DropdownMenuItem onClick={() => handleThemeChange("cyanPurpleDark")}>
+          <div
+            className="w-4 h-4 rounded-full"
+            style={{
+              background:
+                "linear-gradient(135deg, hsl(190 100% 50%), hsl(270 100% 60%))",
+            }}
+          />
+          Ciano & Roxo
+        </DropdownMenuItem>
+
+        <DropdownMenuItem onClick={() => handleThemeChange("light")}>
+          <div className="w-4 h-4 rounded-full border bg-white" />
           Claro
         </DropdownMenuItem>
       </DropdownMenuContent>
