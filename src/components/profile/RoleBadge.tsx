@@ -7,9 +7,9 @@ interface RoleBadgeProps {
 
 const roleConfig = {
   fundador: {
-    label: "Fundadora !.",
+    label: "FUNDADORA",
     icon: Crown,
-    baseClass: "relative bg-red-500/20 text-red-400 border-red-500/50",
+    baseClass: "relative bg-red-500/20 text-white-400 border-blue-500/50",
     glowClass: "fundador-glow",
   },
   admin: {
