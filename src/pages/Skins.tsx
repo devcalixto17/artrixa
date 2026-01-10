@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Layout } from "@/components/layout/Layout";
@@ -19,7 +20,10 @@ export default function Skins() {
     },
   });
 
-  const skinsCategoryIds = categories?.map(c => c.id) || [];
+  const skinsCategoryIds = categories?.map((c) => c.id) || [];
+  const categoryIdBySlug = useMemo(() => {
+    return new Map((categories || []).map((c) => [c.slug, c.id] as const));
+  }, [categories]);
 
   const { data: downloads, isLoading } = useQuery({
     queryKey: ["skins-downloads", skinsCategoryIds],
@@ -27,11 +31,13 @@ export default function Skins() {
       if (skinsCategoryIds.length === 0) return [];
       const { data, error } = await supabase
         .from("downloads")
-        .select(`
+        .select(
+          `
           *,
           categories(name, slug),
           profiles:author_id(username, avatar_url)
-        `)
+        `
+        )
         .eq("status", "approved")
         .in("category_id", skinsCategoryIds)
         .order("created_at", { ascending: false });
@@ -49,7 +55,9 @@ export default function Skins() {
   ];
 
   const getDownloadsByCategory = (slug: string) => {
-    return downloads?.filter((d) => d.categories?.slug === slug) || [];
+    const categoryId = categoryIdBySlug.get(slug);
+    if (!categoryId) return [];
+    return downloads?.filter((d) => d.category_id === categoryId) || [];
   };
 
   return (

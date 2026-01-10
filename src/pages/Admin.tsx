@@ -10,6 +10,16 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Users, Shield, Crown, Sparkles, Award, Trophy, Star, X, Download, Search, Bell, Check, Eye, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -484,31 +494,37 @@ const PendingBadge = () => {
 // Notifications Panel component
 const NotificationsPanel = () => {
   const queryClient = useQueryClient();
-  
+
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
+  const [selectedDownload, setSelectedDownload] = useState<any | null>(null);
+
   const { data: pendingDownloads, isLoading } = useQuery({
     queryKey: ["pending-downloads"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("downloads")
-        .select(`
+        .select(
+          `
           *,
           categories(name, slug)
-        `)
+        `
+        )
         .eq("status", "pending")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
 
-      const authorIds = [...new Set(data?.map(d => d.author_id).filter(Boolean))];
-      
+      const authorIds = [...new Set(data?.map((d) => d.author_id).filter(Boolean))];
+
       let profiles: Record<string, { username: string | null; avatar_url: string | null; user_id: string }> = {};
-      
+
       if (authorIds.length > 0) {
         const { data: profilesData } = await supabase
           .from("profiles")
           .select("user_id, username, avatar_url")
           .in("user_id", authorIds);
-        
+
         if (profilesData) {
           profiles = profilesData.reduce((acc, p) => {
             acc[p.user_id] = p;
@@ -517,31 +533,85 @@ const NotificationsPanel = () => {
         }
       }
 
-      return data?.map(download => ({
+      return data?.map((download) => ({
         ...download,
-        author: download.author_id ? profiles[download.author_id] : null
+        author: download.author_id ? profiles[download.author_id] : null,
       }));
     },
   });
 
-  const updateStatusMutation = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: "approved" | "rejected" }) => {
-      const { error } = await supabase
-        .from("downloads")
-        .update({ status })
-        .eq("id", id);
+  const approveMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("downloads").update({ status: "approved" }).eq("id", id);
       if (error) throw error;
     },
-    onSuccess: (_, { status }) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pending-downloads"] });
       queryClient.invalidateQueries({ queryKey: ["pending-downloads-count"] });
       queryClient.invalidateQueries({ queryKey: ["recent-downloads"] });
-      toast.success(status === "approved" ? "Publicação aprovada!" : "Publicação rejeitada.");
+      queryClient.invalidateQueries({ queryKey: ["downloads"] });
+      queryClient.invalidateQueries({ queryKey: ["downloads-by-category"] });
+      queryClient.invalidateQueries({ queryKey: ["skins-downloads"] });
+      toast.success("Publicação aprovada!");
     },
     onError: (error) => {
       toast.error("Erro: " + error.message);
     },
   });
+
+  const rejectMutation = useMutation({
+    mutationFn: async ({ download, reason }: { download: any; reason: string }) => {
+      const { error } = await supabase
+        .from("downloads")
+        .update({ status: "rejected" })
+        .eq("id", download.id);
+      if (error) throw error;
+
+      if (download.author_id) {
+        const { error: notifError } = await supabase.from("user_notifications").insert({
+          user_id: download.author_id,
+          title: "Publicação Rejeitada",
+          message: `Sua publicação "${download.title}" foi rejeitada. Motivo: ${reason}`,
+          type: "rejection",
+        });
+        if (notifError) {
+          // Não bloqueia a rejeição se a notificação falhar
+          console.error("Failed to send rejection notification:", notifError);
+        }
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["pending-downloads"] });
+      queryClient.invalidateQueries({ queryKey: ["pending-downloads-count"] });
+      queryClient.invalidateQueries({ queryKey: ["recent-downloads"] });
+      queryClient.invalidateQueries({ queryKey: ["downloads"] });
+      queryClient.invalidateQueries({ queryKey: ["downloads-by-category"] });
+      queryClient.invalidateQueries({ queryKey: ["skins-downloads"] });
+
+      setRejectDialogOpen(false);
+      setRejectReason("");
+      setSelectedDownload(null);
+
+      toast.success("Publicação rejeitada e autor notificado.");
+    },
+    onError: (error) => {
+      toast.error("Erro: " + error.message);
+    },
+  });
+
+  const openRejectDialog = (download: any) => {
+    setSelectedDownload(download);
+    setRejectReason("");
+    setRejectDialogOpen(true);
+  };
+
+  const handleReject = () => {
+    if (!selectedDownload || !rejectReason.trim()) {
+      toast.error("Informe o motivo da rejeição.");
+      return;
+    }
+    rejectMutation.mutate({ download: selectedDownload, reason: rejectReason.trim() });
+  };
 
   if (isLoading) {
     return (
@@ -565,105 +635,130 @@ const NotificationsPanel = () => {
   }
 
   return (
-    <div className="space-y-4">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Bell className="w-5 h-5" />
-            Publicações Pendentes
-          </CardTitle>
-          <CardDescription>
-            {pendingDownloads.length} publicação(ões) aguardando aprovação
-          </CardDescription>
-        </CardHeader>
-      </Card>
-      
-      {pendingDownloads.map((download) => (
-        <Card key={download.id}>
-          <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row gap-6">
-              {download.image_url && (
-                <div className="w-full md:w-48 aspect-video rounded-lg overflow-hidden shrink-0">
-                  <img
-                    src={download.image_url}
-                    alt={download.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
+    <>
+      <div className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="w-5 h-5" />
+              Publicações Pendentes
+            </CardTitle>
+            <CardDescription>{pendingDownloads.length} publicação(ões) aguardando aprovação</CardDescription>
+          </CardHeader>
+        </Card>
 
-              <div className="flex-1 space-y-3">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h3 className="text-xl font-semibold">{download.title}</h3>
-                    {download.categories && (
-                      <Badge variant="secondary" className="mt-1">
-                        {download.categories.name}
-                      </Badge>
-                    )}
+        {pendingDownloads.map((download) => (
+          <Card key={download.id}>
+            <CardContent className="p-6">
+              <div className="flex flex-col md:flex-row gap-6">
+                {download.image_url && (
+                  <div className="w-full md:w-48 aspect-video rounded-lg overflow-hidden shrink-0">
+                    <img src={download.image_url} alt={download.title} className="w-full h-full object-cover" />
                   </div>
-                  <div className="flex gap-2 shrink-0">
-                    <Link to={`/download/${download.id}`}>
-                      <Button variant="outline" size="sm" className="gap-1">
-                        <Eye className="h-4 w-4" />
-                        Ver
+                )}
+
+                <div className="flex-1 space-y-3">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h3 className="text-xl font-semibold">{download.title}</h3>
+                      {download.categories && (
+                        <Badge variant="secondary" className="mt-1">
+                          {download.categories.name}
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="flex gap-2 shrink-0">
+                      <Link to={`/download/${download.id}`}>
+                        <Button variant="outline" size="sm" className="gap-1">
+                          <Eye className="h-4 w-4" />
+                          Ver
+                        </Button>
+                      </Link>
+                      <Button
+                        size="sm"
+                        variant="default"
+                        className="gap-1"
+                        onClick={() => approveMutation.mutate(download.id)}
+                        disabled={approveMutation.isPending}
+                      >
+                        <Check className="h-4 w-4" />
+                        Aprovar
                       </Button>
-                    </Link>
-                    <Button
-                      size="sm"
-                      variant="default"
-                      className="gap-1"
-                      onClick={() => updateStatusMutation.mutate({ id: download.id, status: "approved" })}
-                      disabled={updateStatusMutation.isPending}
-                    >
-                      <Check className="h-4 w-4" />
-                      Aprovar
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      className="gap-1"
-                      onClick={() => updateStatusMutation.mutate({ id: download.id, status: "rejected" })}
-                      disabled={updateStatusMutation.isPending}
-                    >
-                      <X className="h-4 w-4" />
-                      Rejeitar
-                    </Button>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        className="gap-1"
+                        onClick={() => openRejectDialog(download)}
+                        disabled={rejectMutation.isPending}
+                      >
+                        <X className="h-4 w-4" />
+                        Rejeitar
+                      </Button>
+                    </div>
                   </div>
-                </div>
 
-                <p className="text-muted-foreground line-clamp-2">
-                  {download.description ? (
-                    <span dangerouslySetInnerHTML={{ __html: download.description.substring(0, 200) }} />
-                  ) : "Sem descrição"}
-                </p>
+                  <p className="text-muted-foreground line-clamp-2">
+                    {download.description ? (
+                      <span dangerouslySetInnerHTML={{ __html: download.description.substring(0, 200) }} />
+                    ) : (
+                      "Sem descrição"
+                    )}
+                  </p>
 
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                  {download.author && (
-                    <Link 
-                      to={`/profile/${download.author.user_id}`}
-                      className="flex items-center gap-2 hover:text-foreground"
-                    >
-                      <Avatar className="h-6 w-6">
-                        <AvatarImage src={download.author.avatar_url || undefined} />
-                        <AvatarFallback>
-                          <Users className="h-3 w-3" />
-                        </AvatarFallback>
-                      </Avatar>
-                      {download.author.username || "Usuário"}
-                    </Link>
-                  )}
-                  <span className="flex items-center gap-1">
-                    <Calendar className="h-4 w-4" />
-                    {format(new Date(download.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                  </span>
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    {download.author && (
+                      <Link to={`/profile/${download.author.user_id}`} className="flex items-center gap-2 hover:text-foreground">
+                        <Avatar className="h-6 w-6">
+                          <AvatarImage src={download.author.avatar_url || undefined} />
+                          <AvatarFallback>
+                            <Users className="h-3 w-3" />
+                          </AvatarFallback>
+                        </Avatar>
+                        {download.author.username || "Usuário"}
+                      </Link>
+                    )}
+                    <span className="flex items-center gap-1">
+                      <Calendar className="h-4 w-4" />
+                      {format(new Date(download.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rejeitar Publicação</DialogTitle>
+            <DialogDescription>
+              Informe o motivo da rejeição. O autor será notificado com a justificativa.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-2">
+            <Label htmlFor="reject-reason">Motivo da rejeição *</Label>
+            <Textarea
+              id="reject-reason"
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              placeholder="Ex: Conteúdo duplicado, link inválido, qualidade insuficiente, etc."
+              rows={4}
+              className="mt-2"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button variant="destructive" onClick={handleReject} disabled={rejectMutation.isPending || !rejectReason.trim()}>
+              {rejectMutation.isPending ? "Rejeitando..." : "Confirmar Rejeição"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
