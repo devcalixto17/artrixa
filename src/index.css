@@ -187,7 +187,7 @@
 @keyframes founderGlow {
   0% {
     background-position: 0% 50%;
-    filter: drop-shadow(0 0 6px rgba(243, 1, 1, 0.959));
+    filter: drop-shadow(0 0 6px rgba(243, 1, 1, 0.95));
   }
   50% {
     background-position: 100% 50%;
@@ -195,19 +195,34 @@
   }
   100% {
     background-position: 0% 50%;
-    filter: drop-shadow(0 0 6px rgba(250, 1, 1, 0.986));
+    filter: drop-shadow(0 0 6px rgba(250, 1, 1, 0.98));
+  }
+}
+
+@keyframes founderPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.03);
+  }
+  100% {
+    transform: scale(1);
   }
 }
 
 .founder-gradient {
   background: linear-gradient(
     90deg,
-    #ef4444,   /* red-500 */
-    #a855f7,   /* purple-500 */
+    #ef4444,
+    #a855f7,
     #ef4444
   );
   background-size: 300% 300%;
-  animation: founderGlow 4s ease-in-out infinite;
+
+  animation:
+    founderGlow 4s ease-in-out infinite,
+    founderPulse 2.5s ease-in-out infinite;
 
   background-clip: text;
   -webkit-background-clip: text;
@@ -215,7 +230,10 @@
 
   font-weight: 700;
   letter-spacing: 0.3px;
+
+  display: inline-block; /* MUITO importante para o transform funcionar direito */
 }
+
 
 
 
