@@ -12,8 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { Crown, Diamond, Check, CreditCard, Lock, Plus, Trash2, Download, X, Edit, QrCode } from "lucide-react";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Crown, Diamond, Check, CreditCard, Lock, Plus, Trash2, Download, X, Edit } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -25,7 +24,7 @@ export default function VipArea() {
   const [searchParams] = useSearchParams();
   
   const [isProcessing, setIsProcessing] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<"card" | "pix">("card");
+  
 
   // New post form state
   const [newPostTitle, setNewPostTitle] = useState("");
@@ -119,11 +118,9 @@ export default function VipArea() {
 
   // Create Stripe checkout
   const createCheckoutMutation = useMutation({
-    mutationFn: async (method: "card" | "pix") => {
+    mutationFn: async () => {
       setIsProcessing(true);
-      const { data, error } = await supabase.functions.invoke("create-checkout", {
-        body: { payment_method: method },
-      });
+      const { data, error } = await supabase.functions.invoke("create-checkout");
       if (error) throw error;
       return data;
     },
@@ -586,60 +583,21 @@ export default function VipArea() {
               ) : (
                 <>
                   <p className="text-muted-foreground">
-                    Escolha sua forma de pagamento preferida:
+                    Assine com cartão de crédito ou débito e tenha acesso imediato a todos os benefícios VIP.
                   </p>
-
-                  <RadioGroup
-                    value={paymentMethod}
-                    onValueChange={(value) => setPaymentMethod(value as "card" | "pix")}
-                    className="grid grid-cols-2 gap-4"
-                  >
-                    <div>
-                      <RadioGroupItem value="card" id="card" className="peer sr-only" />
-                      <Label
-                        htmlFor="card"
-                        className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
-                      >
-                        <CreditCard className="mb-3 h-6 w-6" />
-                        <span className="font-medium">Cartão</span>
-                        <span className="text-xs text-muted-foreground">Crédito/Débito</span>
-                      </Label>
-                    </div>
-                    <div>
-                      <RadioGroupItem value="pix" id="pix" className="peer sr-only" />
-                      <Label
-                        htmlFor="pix"
-                        className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
-                      >
-                        <QrCode className="mb-3 h-6 w-6" />
-                        <span className="font-medium">PIX</span>
-                        <span className="text-xs text-muted-foreground">Pagamento Único</span>
-                      </Label>
-                    </div>
-                  </RadioGroup>
-
-                  {paymentMethod === "pix" && (
-                    <p className="text-xs text-amber-500 bg-amber-500/10 p-2 rounded">
-                      ⚠️ PIX é um pagamento único. A assinatura não será renovada automaticamente.
-                    </p>
-                  )}
 
                   <Button
                     className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white"
                     size="lg"
-                    onClick={() => createCheckoutMutation.mutate(paymentMethod)}
+                    onClick={() => createCheckoutMutation.mutate()}
                     disabled={isProcessing || createCheckoutMutation.isPending}
                   >
                     {isProcessing || createCheckoutMutation.isPending ? (
                       "Processando..."
                     ) : (
                       <>
-                        {paymentMethod === "pix" ? (
-                          <QrCode className="h-5 w-5 mr-2" />
-                        ) : (
-                          <Diamond className="h-5 w-5 mr-2" />
-                        )}
-                        {paymentMethod === "pix" ? "Pagar com PIX" : "Assinar VIP Diamante"}
+                        <CreditCard className="h-5 w-5 mr-2" />
+                        Assinar VIP Diamante
                       </>
                     )}
                   </Button>
