@@ -26,7 +26,7 @@ const iconOptions = [
 // Lista de ícones prontos (incluindo GIFs)
 const predefinedIcons = [
   { name: "Estrela Dourada", url: "/icons/golden-star.gif" },
-  { name: "Coroa Real", url: "/icons/royal-crown.gif" },
+  { name: "Coroa Real", url: "https://emoji.discadia.com/emojis/0ccafb29-a6bb-482b-9e8e-f1eb584bb263.gif" },
   { name: "Escudo Mágico", url: "/icons/magic-shield.gif" },
   { name: "Troféu Brilhante", url: "/icons/shiny-trophy.gif" },
   { name: "Medalha de Ouro", url: "/icons/gold-medal.gif" },
