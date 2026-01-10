@@ -67,7 +67,7 @@ export const UserHoverCard = ({ userId, children }: UserHoverCardProps) => {
   });
 
   const roleConfig: Record<string, { label: string; color: string }> = {
-    fundador: { label: "FUNDADORA !", color: "founder-gradient font-semibold" },
+    fundador: { label: "FUNDADORA !", color: "text-red-500 bg-red-500/10" },
     admin: { label: "Admin", color: "text-yellow-500 bg-yellow-500/10" },
     staff: { label: "Staff", color: "text-blue-500 bg-blue-500/10" },
     user: { label: "Usuário", color: "text-muted-foreground bg-muted" },
