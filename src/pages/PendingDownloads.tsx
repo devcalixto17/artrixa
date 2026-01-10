@@ -100,31 +100,34 @@ export default function PendingDownloads() {
     },
   });
 
-  // Reject mutation - deletes the download and sends notification
+  // Reject mutation - updates status to 'rejected' and sends notification
   const rejectMutation = useMutation({
     mutationFn: async ({ download, reason }: { download: any; reason: string }) => {
-      // Send notification to author
-      if (download.author_id) {
-        const { error: notifError } = await supabase
-          .from("user_notifications")
-          .insert({
-            user_id: download.author_id,
-            title: "Publicação Rejeitada",
-            message: `Sua publicação "${download.title}" foi rejeitada. Motivo: ${reason}`,
-            type: "rejection",
-          });
-        if (notifError) console.error("Failed to send notification:", notifError);
-      }
-      
-      // Delete the download
+      // Update download status
       const { error } = await supabase
         .from("downloads")
-        .delete()
+        .update({ status: "rejected" })
         .eq("id", download.id);
       if (error) throw error;
+
+      // Send notification to author
+      if (download.author_id) {
+        const { error: notifError } = await supabase.from("user_notifications").insert({
+          user_id: download.author_id,
+          title: "Publicação Rejeitada",
+          message: `Sua publicação "${download.title}" foi rejeitada. Motivo: ${reason}`,
+          type: "rejection",
+        });
+        if (notifError) console.error("Failed to send notification:", notifError);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pending-downloads"] });
+      queryClient.invalidateQueries({ queryKey: ["pending-downloads-count"] });
+      queryClient.invalidateQueries({ queryKey: ["downloads"] });
+      queryClient.invalidateQueries({ queryKey: ["downloads-by-category"] });
+      queryClient.invalidateQueries({ queryKey: ["skins-downloads"] });
+      queryClient.invalidateQueries({ queryKey: ["recent-downloads"] });
       setRejectDialogOpen(false);
       setRejectReason("");
       setSelectedDownload(null);
