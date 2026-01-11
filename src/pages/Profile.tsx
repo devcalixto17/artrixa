@@ -35,19 +35,32 @@ const Profile = () => {
     enabled: !!userId,
   });
 
-  const { data: userRole } = useQuery({
-    queryKey: ["user-role", userId],
+  // Busca TODOS os roles do usuário para exibir o mais alto
+  const { data: userRoles } = useQuery({
+    queryKey: ["user-all-roles", userId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("user_roles")
         .select("role")
-        .eq("user_id", userId)
-        .maybeSingle();
+        .eq("user_id", userId);
       if (error) throw error;
-      return data?.role || "user";
+      return data?.map(r => r.role) || ["user"];
     },
     enabled: !!userId,
   });
+
+  // Prioridade dos roles (menor = mais importante)
+  const rolePriority: Record<string, number> = {
+    fundador: 1,
+    admin: 2,
+    staff: 3,
+    vip_diamante: 4,
+    user: 100,
+  };
+
+  // Pegar o role de maior prioridade
+  const highestRole = (userRoles || ["user"])
+    .sort((a, b) => (rolePriority[a] || 100) - (rolePriority[b] || 100))[0] as any;
 
   const { data: userDownloads, isLoading: downloadsLoading } = useQuery({
     queryKey: ["user-downloads", userId],
@@ -64,7 +77,7 @@ const Profile = () => {
     enabled: !!userId,
   });
 
-  const role = (userRole as "fundador" | "admin" | "staff" | "user") || "user";
+  const role = highestRole || "user";
 
   if (profileLoading) {
     return (

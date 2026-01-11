@@ -26,6 +26,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Database } from "@/integrations/supabase/types";
 import { BadgeManager } from "@/components/admin/BadgeManager";
 import { ModerationPanel } from "@/components/admin/ModerationPanel";
+import { RolePermissionsManager } from "@/components/admin/RolePermissionsManager";
+import { CustomRolesManager } from "@/components/admin/CustomRolesManager";
 import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -268,6 +270,14 @@ const Admin = () => {
             <TabsTrigger value="badges" className="data-[state=active]:bg-background">
               <Award className="w-4 h-4 mr-2" />
               Insígnias
+            </TabsTrigger>
+            <TabsTrigger value="permissions" className="data-[state=active]:bg-background">
+              <Shield className="w-4 h-4 mr-2" />
+              Permissões
+            </TabsTrigger>
+            <TabsTrigger value="custom-roles" className="data-[state=active]:bg-background">
+              <Crown className="w-4 h-4 mr-2" />
+              Cargos
             </TabsTrigger>
           </TabsList>
           

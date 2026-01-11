@@ -1,14 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Layout } from "@/components/layout/Layout";
 import { DownloadCard } from "@/components/cards/DownloadCard";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import {
   Crosshair,
   Sword,
   Users,
   Skull,
+  Layers,
 } from "lucide-react";
 
 const SKIN_SLUGS = [
@@ -39,32 +41,50 @@ export default function Skins() {
         .order("name");
 
       if (error) throw error;
-      return data;
+      console.log("Categories loaded:", data);
+      return data || [];
     },
   });
 
-  /** 🔹 Busca downloads da categoria ativa */
-  const { data: downloads, isLoading } = useQuery({
-    queryKey: ["skins-downloads", activeCategory],
-    queryFn: async () => {
-      if (!activeCategory) return [];
+  // Selecionar primeira categoria automaticamente quando carregar
+  useEffect(() => {
+    if (categories && categories.length > 0 && !activeCategory) {
+      setActiveCategory(categories[0].id);
+    }
+  }, [categories, activeCategory]);
 
+  /** 🔹 Busca TODAS as skins de todas as categorias */
+  const { data: allDownloads, isLoading: loadingAll } = useQuery({
+    queryKey: ["all-skins-downloads"],
+    queryFn: async () => {
+      if (!categories || categories.length === 0) return [];
+      
+      const categoryIds = categories.map(c => c.id);
+      
       const { data, error } = await supabase
         .from("downloads")
         .select(`
           *,
-          categories(name),
+          categories(name, slug),
           profiles:author_id(username, avatar_url)
         `)
         .eq("status", "approved")
-        .eq("category_id", activeCategory)
+        .in("category_id", categoryIds)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data;
+      console.log("All skins downloads:", data);
+      return data || [];
     },
-    enabled: !!activeCategory,
+    enabled: !!categories && categories.length > 0,
   });
+
+  // Filtrar downloads pela categoria ativa
+  const filteredDownloads = activeCategory === "all" 
+    ? allDownloads 
+    : allDownloads?.filter(d => d.category_id === activeCategory);
+
+  const isLoading = loadingCategories || loadingAll;
 
   return (
     <Layout>
@@ -81,49 +101,59 @@ export default function Skins() {
 
         {/* Botões de categorias */}
         <div className="flex flex-wrap gap-3 mb-8">
+          {/* Botão "Todas" */}
+          <Button
+            variant={activeCategory === "all" ? "default" : "outline"}
+            onClick={() => setActiveCategory("all")}
+            className="gap-2"
+          >
+            <Layers className="w-4 h-4" />
+            Todas
+          </Button>
+
           {loadingCategories ? (
-            <Skeleton className="h-10 w-40" />
+            <>
+              <Skeleton className="h-10 w-32" />
+              <Skeleton className="h-10 w-32" />
+              <Skeleton className="h-10 w-32" />
+            </>
           ) : (
             categories?.map((cat) => {
-              const Icon = categoryIcons[cat.slug];
+              const Icon = categoryIcons[cat.slug] || Layers;
               const isActive = activeCategory === cat.id;
 
               return (
-                <button
+                <Button
                   key={cat.id}
+                  variant={isActive ? "default" : "outline"}
                   onClick={() => setActiveCategory(cat.id)}
-                  className={`
-                    flex items-center gap-2 px-4 py-2 rounded-lg border
-                    transition-all text-sm
-                    ${
-                      isActive
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-background border-border hover:bg-muted"
-                    }
-                  `}
+                  className="gap-2"
                 >
-                  {Icon && <Icon className="w-4 h-4" />}
+                  <Icon className="w-4 h-4" />
                   {cat.name}
-                </button>
+                </Button>
               );
             })
           )}
         </div>
 
+        {/* Contador de resultados */}
+        {filteredDownloads && filteredDownloads.length > 0 && (
+          <p className="text-sm text-muted-foreground mb-4">
+            {filteredDownloads.length} skin(s) encontrada(s)
+          </p>
+        )}
+
         {/* Conteúdo */}
-        {!activeCategory ? (
-          <div className="text-center py-16 text-muted-foreground">
-            Selecione uma categoria para ver as skins
-          </div>
-        ) : isLoading ? (
+        {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map((i) => (
               <Skeleton key={i} className="h-64 rounded-lg" />
             ))}
           </div>
-        ) : downloads && downloads.length > 0 ? (
+        ) : filteredDownloads && filteredDownloads.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {downloads.map((download: any) => (
+            {filteredDownloads.map((download: any) => (
               <DownloadCard
                 key={download.id}
                 id={download.id}
@@ -142,7 +172,8 @@ export default function Skins() {
           </div>
         ) : (
           <div className="text-center py-16 text-muted-foreground">
-            Nenhuma skin encontrada nesta categoria
+            <Layers className="w-12 h-12 mx-auto mb-4 opacity-50" />
+            <p>Nenhuma skin encontrada nesta categoria</p>
           </div>
         )}
       </div>

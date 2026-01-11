@@ -170,6 +170,11 @@
             drop-shadow(0 0 16px hsl(217 91% 60% / 0.4));
   }
 
+  .vip-glow {
+    filter: drop-shadow(0 0 8px hsl(185 85% 55% / 0.7)) 
+            drop-shadow(0 0 16px hsl(270 85% 60% / 0.5));
+  }
+
   @keyframes lightning-flicker {
     0%, 100% { opacity: 0.4; }
     10% { opacity: 1; }
