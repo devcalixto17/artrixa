@@ -471,6 +471,14 @@ const Admin = () => {
           <TabsContent value="badges" className="space-y-4">
             <BadgeManager />
           </TabsContent>
+
+          <TabsContent value="permissions" className="space-y-4">
+            <RolePermissionsManager />
+          </TabsContent>
+
+          <TabsContent value="custom-roles" className="space-y-4">
+            <CustomRolesManager />
+          </TabsContent>
         </Tabs>
       </div>
     </Layout>
