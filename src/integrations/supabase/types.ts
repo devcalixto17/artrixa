@@ -119,6 +119,36 @@ export type Database = {
           },
         ]
       }
+      custom_roles: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          display_order: number | null
+          id: string
+          name: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          name: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          display_order?: number | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       download_tracking: {
         Row: {
           download_id: string
@@ -204,6 +234,30 @@ export type Database = {
           },
         ]
       }
+      permissions: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string
+          id: string
+          name: string
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description: string
+          id?: string
+          name: string
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       private_messages: {
         Row: {
           content: string
@@ -267,6 +321,51 @@ export type Database = {
         }
         Relationships: []
       }
+      role_permissions: {
+        Row: {
+          custom_role_id: string | null
+          granted_at: string | null
+          granted_by: string | null
+          id: string
+          permission_id: string
+          role_name: string | null
+          role_type: string
+        }
+        Insert: {
+          custom_role_id?: string | null
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          permission_id: string
+          role_name?: string | null
+          role_type: string
+        }
+        Update: {
+          custom_role_id?: string | null
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          permission_id?: string
+          role_name?: string | null
+          role_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "role_permissions_custom_role_id_fkey"
+            columns: ["custom_role_id"]
+            isOneToOne: false
+            referencedRelation: "custom_roles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "role_permissions_permission_id_fkey"
+            columns: ["permission_id"]
+            isOneToOne: false
+            referencedRelation: "permissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_badges: {
         Row: {
           awarded_at: string
@@ -295,6 +394,38 @@ export type Database = {
             columns: ["badge_id"]
             isOneToOne: false
             referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_custom_roles: {
+        Row: {
+          assigned_at: string | null
+          assigned_by: string | null
+          custom_role_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          custom_role_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          custom_role_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_custom_roles_custom_role_id_fkey"
+            columns: ["custom_role_id"]
+            isOneToOne: false
+            referencedRelation: "custom_roles"
             referencedColumns: ["id"]
           },
         ]
@@ -471,6 +602,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      user_has_permission: {
+        Args: { _permission_name: string; _user_id: string }
         Returns: boolean
       }
     }
