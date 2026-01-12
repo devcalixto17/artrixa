@@ -19,7 +19,6 @@ interface DownloadCardProps {
   authorName?: string | null;
   authorAvatar?: string | null;
   authorUserId?: string | null;
-  compact?: boolean;
 }
 
 export const DownloadCard = ({
@@ -33,7 +32,6 @@ export const DownloadCard = ({
   authorName,
   authorAvatar,
   authorUserId,
-  compact = false,
 }: DownloadCardProps) => {
   // Strip HTML tags from description for preview
   const plainDescription = useMemo(() => {
@@ -70,10 +68,10 @@ export const DownloadCard = ({
   const roleColorClass = roleConfig[userRole || "user"]?.color || "text-muted-foreground";
 
   return (
-    <div className="group gradient-card rounded-lg border border-border card-hover">
+    <div className="group gradient-card rounded-lg border border-border card-hover download-card">
       <Link to={`/download/${id}`}>
         {/* Image */}
-        <div className={`${compact ? "aspect-[16/10]" : "aspect-video"} overflow-hidden rounded-t-lg`}>
+        <div className="download-card-image overflow-hidden rounded-t-lg">
           <img
             src={imageUrl || "/placeholder.svg"}
             alt={title}
@@ -82,17 +80,17 @@ export const DownloadCard = ({
         </div>
 
         {/* Content */}
-        <div className={`${compact ? "p-3" : "p-4"}`}>
+        <div className="download-card-content">
           {categoryName && (
-            <span className={`inline-block px-2 py-1 ${compact ? "text-[10px]" : "text-xs"} font-medium bg-primary/20 text-primary rounded mb-2`}>
+            <span className="inline-block px-2 py-1 text-xs font-medium bg-primary/20 text-primary rounded mb-2">
               {categoryName}
             </span>
           )}
-          <h3 className={`font-display ${compact ? "text-sm" : "text-lg"} font-bold text-foreground group-hover:text-primary transition-colors line-clamp-1`}>
+          <h3 className="font-display text-lg font-bold text-foreground group-hover:text-primary transition-colors line-clamp-2">
             {title}
           </h3>
-          {!compact && plainDescription && (
-            <p className="text-muted-foreground text-sm mt-1 line-clamp-2">
+          {plainDescription && (
+            <p className="text-muted-foreground text-sm mt-2 line-clamp-3">
               {plainDescription}
             </p>
           )}
@@ -100,17 +98,17 @@ export const DownloadCard = ({
       </Link>
 
       {/* Footer */}
-      <div className={`${compact ? "px-3 pb-3" : "px-4 pb-4"} pt-0`}>
-        <div className={`flex items-center justify-between ${compact ? "text-[10px]" : "text-xs"} text-muted-foreground border-t border-border pt-2`}>
+      <div className="download-card-footer">
+        <div className="flex items-center justify-between text-xs text-muted-foreground border-t border-border pt-3">
           {/* Author */}
           {authorUserId ? (
             <UserHoverCard userId={authorUserId}>
               <Link
                 to={`/profile/${authorUserId}`}
-                className={`flex items-center gap-2 hover:text-foreground transition-colors ${roleColorClass}`} // Aplicando a cor do cargo aqui
+                className={`flex items-center gap-2 hover:text-foreground transition-colors ${roleColorClass}`}
                 onClick={(e) => e.stopPropagation()}
               >
-                <Avatar className={`${compact ? "h-4 w-4" : "h-5 w-5"}`}>
+                <Avatar className="h-6 w-6">
                   <AvatarImage src={authorAvatar || undefined} />
                   <AvatarFallback>
                     <User className="h-3 w-3" />
@@ -121,7 +119,7 @@ export const DownloadCard = ({
             </UserHoverCard>
           ) : (
             <span className="flex items-center gap-2">
-              <Avatar className={`${compact ? "h-4 w-4" : "h-5 w-5"}`}>
+              <Avatar className="h-6 w-6">
                 <AvatarFallback>
                   <User className="h-3 w-3" />
                 </AvatarFallback>

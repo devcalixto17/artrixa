@@ -70,6 +70,7 @@ export const UserHoverCard = ({ userId, children }: UserHoverCardProps) => {
     fundador: { label: "FUNDADORA !", color: "text-red-500 bg-red-500/10" },
     admin: { label: "Admin", color: "text-yellow-500 bg-yellow-500/10" },
     staff: { label: "Staff", color: "text-blue-500 bg-blue-500/10" },
+    vip_diamante: { label: "VIP DIAMANTE", color: "text-cyan-400 bg-cyan-500/10 vip-glow" },
     user: { label: "Usuário", color: "text-muted-foreground bg-muted" },
   };
 
