@@ -63,6 +63,7 @@ export const DownloadCard = ({
     fundador: { label: "FUNDADORA", color: "founder-gradient font-semibold" },
     admin: { label: "Admin", color: "text-yellow-500" },
     staff: { label: "Staff", color: "text-blue-500" },
+    vip_diamante: { label: "Vip Diamante", color: "text-blue-500" },
     user: { label: "Usuário", color: "text-muted-foreground" },
   };
 
