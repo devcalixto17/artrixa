@@ -22,6 +22,7 @@ export const Sidebar = () => {
       const { data, error } = await supabase
         .from("downloads")
         .select("*")
+        .eq("status", "approved")
         .order("download_count", { ascending: false })
         .limit(5);
       if (error) throw error;

@@ -221,6 +221,23 @@
   letter-spacing: 0.3px;
 }
 
+/* Download Card customizable sizing */
+.download-card {
+  min-height: 380px;
+  display: flex;
+  flex-direction: column;
+}
 
+.download-card-image {
+  aspect-ratio: 16/10;
+  min-height: 180px;
+}
 
+.download-card-content {
+  padding: 1rem 1.25rem;
+  flex: 1;
+}
 
+.download-card-footer {
+  padding: 0 1.25rem 1rem;
+}

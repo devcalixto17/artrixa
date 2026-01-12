@@ -146,13 +146,13 @@ export default function Skins() {
 
         {/* Conteúdo */}
         {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {[1, 2, 3, 4].map((i) => (
-              <Skeleton key={i} className="h-64 rounded-lg" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-80 rounded-lg" />
             ))}
           </div>
         ) : filteredDownloads && filteredDownloads.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredDownloads.map((download: any) => (
               <DownloadCard
                 key={download.id}
@@ -166,7 +166,6 @@ export default function Skins() {
                 authorName={download.profiles?.username}
                 authorAvatar={download.profiles?.avatar_url}
                 authorUserId={download.author_id}
-                compact
               />
             ))}
           </div>

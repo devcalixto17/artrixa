@@ -236,7 +236,6 @@ const Profile = () => {
                     authorName={profile.username}
                     authorAvatar={profile.avatar_url}
                     authorUserId={profile.user_id}
-                    compact
                   />
                 ))}
               </div>

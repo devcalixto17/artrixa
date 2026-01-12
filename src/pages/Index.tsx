@@ -49,13 +49,13 @@ const Index = () => {
         </h2>
         
         {isLoading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="h-48 bg-card animate-pulse rounded-lg" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-80 bg-card animate-pulse rounded-lg" />
             ))}
           </div>
         ) : downloads && downloads.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {downloads.map((download) => (
               <DownloadCard
                 key={download.id}
@@ -69,7 +69,6 @@ const Index = () => {
                 authorName={download.author?.username}
                 authorAvatar={download.author?.avatar_url}
                 authorUserId={download.author_id}
-                compact
               />
             ))}
           </div>

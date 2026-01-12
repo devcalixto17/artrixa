@@ -28,6 +28,7 @@ import { BadgeManager } from "@/components/admin/BadgeManager";
 import { ModerationPanel } from "@/components/admin/ModerationPanel";
 import { RolePermissionsManager } from "@/components/admin/RolePermissionsManager";
 import { CustomRolesManager } from "@/components/admin/CustomRolesManager";
+import { UserRoleAssignment } from "@/components/admin/UserRoleAssignment";
 import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -477,6 +478,7 @@ const Admin = () => {
           </TabsContent>
 
           <TabsContent value="custom-roles" className="space-y-4">
+            <UserRoleAssignment />
             <CustomRolesManager />
           </TabsContent>
         </Tabs>
