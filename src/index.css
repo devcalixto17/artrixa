@@ -226,11 +226,14 @@
   min-height: 380px;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .download-card-image {
   aspect-ratio: 16/10;
   min-height: 180px;
+  max-height: 220px;
+  flex-shrink: 0;
 }
 
 .download-card-content {
