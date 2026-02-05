@@ -10,6 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Bell, Mail, MailOpen, Trash2, AlertCircle, Info, CheckCircle } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { toast } from "sonner";
 
 export function NotificationsSection() {
   const { user } = useAuth();
@@ -79,6 +80,24 @@ export function NotificationsSection() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user-notifications"] });
+      toast.success("Notificação apagada!");
+    },
+  });
+
+  const deleteMessageMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("private_messages")
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["private-messages"] });
+      toast.success("Mensagem apagada!");
+    },
+    onError: (error) => {
+      toast.error("Erro ao apagar mensagem: " + error.message);
     },
   });
 
@@ -214,16 +233,21 @@ export function NotificationsSection() {
                           <MailOpen className="h-4 w-4" />
                         </Button>
                       )}
-                      {item.itemType === "notification" && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-destructive hover:text-destructive"
-                          onClick={() => deleteNotificationMutation.mutate(item.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
+                      {/* Delete button for both notifications and messages */}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:text-destructive"
+                        onClick={() => {
+                          if (item.itemType === "message") {
+                            deleteMessageMutation.mutate(item.id);
+                          } else {
+                            deleteNotificationMutation.mutate(item.id);
+                          }
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 </div>

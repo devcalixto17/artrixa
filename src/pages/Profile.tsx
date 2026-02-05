@@ -216,13 +216,13 @@ const Profile = () => {
           </CardHeader>
           <CardContent>
             {downloadsLoading ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                {[1, 2, 3, 4].map((i) => (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[1, 2, 3].map((i) => (
                   <Skeleton key={i} className="h-48 w-full" />
                 ))}
               </div>
             ) : userDownloads && userDownloads.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {userDownloads.map((download) => (
                   <DownloadCard
                     key={download.id}

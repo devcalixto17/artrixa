@@ -37,16 +37,15 @@ export const UserHoverCard = ({ userId, children }: UserHoverCardProps) => {
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
   });
 
-  const { data: userRole } = useQuery({
-    queryKey: ["hover-role", userId],
+  const { data: userRoles } = useQuery({
+    queryKey: ["hover-roles", userId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("user_roles")
         .select("role")
-        .eq("user_id", userId)
-        .maybeSingle();
+        .eq("user_id", userId);
       if (error) throw error;
-      return data?.role || "user";
+      return data?.map(r => r.role) || ["user"];
     },
     enabled: !!userId,
     staleTime: 1000 * 60 * 5,
@@ -74,7 +73,16 @@ export const UserHoverCard = ({ userId, children }: UserHoverCardProps) => {
     user: { label: "Usuário", color: "text-muted-foreground bg-muted" },
   };
 
-  const role = roleConfig[userRole || "user"] || roleConfig.user;
+  // Priority order for role display
+  const rolePriority: Record<string, number> = {
+    fundador: 1, admin: 2, staff: 3, vip_diamante: 4, user: 100,
+  };
+
+  const sortedRoles = (userRoles || ["user"])
+    .sort((a, b) => (rolePriority[a] || 100) - (rolePriority[b] || 100));
+  
+  const highestRole = sortedRoles[0] || "user";
+  const role = roleConfig[highestRole] || roleConfig.user;
 
   return (
     <HoverCard openDelay={200} closeDelay={100}>
@@ -115,9 +123,23 @@ export const UserHoverCard = ({ userId, children }: UserHoverCardProps) => {
             >
               {profile?.username || "Usuário"}
             </Link>
-            <Badge variant="secondary" className={`text-xs ${role.color}`}>
-              {role.label}
-            </Badge>
+            <div className="flex flex-wrap gap-1">
+              {sortedRoles
+                .filter(r => r !== "user")
+                .map((r) => {
+                  const rc = roleConfig[r] || roleConfig.user;
+                  return (
+                    <Badge key={r} variant="secondary" className={`text-xs ${rc.color}`}>
+                      {rc.label}
+                    </Badge>
+                  );
+                })}
+              {sortedRoles.every(r => r === "user") && (
+                <Badge variant="secondary" className={`text-xs ${roleConfig.user.color}`}>
+                  {roleConfig.user.label}
+                </Badge>
+              )}
+            </div>
             {profile?.bio && (
               <p className="text-xs text-muted-foreground line-clamp-2 mt-2">
                 {profile.bio}

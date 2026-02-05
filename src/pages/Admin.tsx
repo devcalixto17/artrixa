@@ -20,7 +20,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Users, Shield, Crown, Sparkles, Award, Trophy, Star, X, Download, Search, Bell, Check, Eye, Calendar } from "lucide-react";
+import { Users, Shield, Crown, Sparkles, Award, Trophy, Star, X, Download, Search, Bell, Check, Eye, Calendar, Send, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Database } from "@/integrations/supabase/types";
@@ -29,6 +29,7 @@ import { ModerationPanel } from "@/components/admin/ModerationPanel";
 import { RolePermissionsManager } from "@/components/admin/RolePermissionsManager";
 import { CustomRolesManager } from "@/components/admin/CustomRolesManager";
 import { UserRoleAssignment } from "@/components/admin/UserRoleAssignment";
+import { SentMessagesPanel } from "@/components/admin/SentMessagesPanel";
 import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -254,7 +255,7 @@ const Admin = () => {
         </div>
         
         <Tabs defaultValue="notifications" className="space-y-4">
-          <TabsList className="bg-muted">
+          <TabsList className="bg-muted flex-wrap">
             <TabsTrigger value="notifications" className="data-[state=active]:bg-background relative">
               <Bell className="w-4 h-4 mr-2" />
               Notificações
@@ -263,6 +264,10 @@ const Admin = () => {
             <TabsTrigger value="users" className="data-[state=active]:bg-background">
               <Users className="w-4 h-4 mr-2" />
               Usuários
+            </TabsTrigger>
+            <TabsTrigger value="sent-messages" className="data-[state=active]:bg-background">
+              <Send className="w-4 h-4 mr-2" />
+              Mensagens Enviadas
             </TabsTrigger>
             <TabsTrigger value="moderation" className="data-[state=active]:bg-background">
               <Shield className="w-4 h-4 mr-2" />
@@ -351,10 +356,20 @@ const Admin = () => {
                           
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
-                              <p className="font-semibold text-foreground truncate">
+                              <Link 
+                                to={`/profile/${userData.user_id}`}
+                                className="font-semibold text-foreground truncate hover:text-primary transition-colors"
+                              >
                                 {userData.username || "Usuário"}
-                              </p>
+                              </Link>
                               <RoleIcon className={`w-4 h-4 ${roleColor}`} />
+                              <Link 
+                                to={`/profile/${userData.user_id}`}
+                                className="text-muted-foreground hover:text-primary transition-colors"
+                                title="Ver perfil"
+                              >
+                                <ExternalLink className="w-4 h-4" />
+                              </Link>
                             </div>
                             
                             {/* User Badges */}
@@ -465,6 +480,11 @@ const Admin = () => {
             </Card>
           </TabsContent>
           
+          
+          <TabsContent value="sent-messages" className="space-y-4">
+            <SentMessagesPanel />
+          </TabsContent>
+
           <TabsContent value="moderation" className="space-y-4">
             <ModerationPanel />
           </TabsContent>
