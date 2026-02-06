@@ -29,24 +29,46 @@ export function AdminSupportPanel() {
     const scrollRef = useRef<HTMLDivElement>(null);
 
     // Fetch all open tickets
-    const { data: tickets, isLoading: loadingTickets } = useQuery({
+    // Fetch all open tickets
+    const { data: tickets, isLoading: loadingTickets, error: ticketsError } = useQuery({
         queryKey: ["admin-support-tickets"],
         queryFn: async () => {
-            const { data, error } = await supabase
+            // 1. Fetch tickets
+            const { data: ticketsData, error: ticketsError } = await supabase
                 .from("support_tickets" as any)
-                .select(`
-          *,
-          profiles:user_id(username, avatar_url)
-        `)
+                .select("*")
                 .neq("status", "closed")
                 .order("created_at", { ascending: false });
 
-            if (error) throw error;
-            return data as TicketWithProfile[];
+            if (ticketsError) throw ticketsError;
+            if (!ticketsData || ticketsData.length === 0) return [];
+
+            // 2. Fetch profiles manually
+            const userIds = [...new Set(ticketsData.map((t: any) => t.user_id))];
+
+            const { data: profilesData } = await supabase
+                .from("profiles")
+                .select("id, username, avatar_url")
+                .in("id", userIds);
+
+            // 3. Map profiles to tickets
+            const profilesMap = (profilesData || []).reduce((acc: any, profile: any) => {
+                acc[profile.id] = profile;
+                return acc;
+            }, {});
+
+            return ticketsData.map((ticket: any) => ({
+                ...ticket,
+                profiles: profilesMap[ticket.user_id] || { username: 'Usuário', avatar_url: null }
+            })) as TicketWithProfile[];
         },
         // Refetch every 30 seconds to update list, or rely on realtime
         refetchInterval: 30000,
     });
+
+    if (ticketsError) {
+        console.error("AdminSupportPanel query error:", ticketsError);
+    }
 
     // Realtime subscription for new tickets
     useEffect(() => {

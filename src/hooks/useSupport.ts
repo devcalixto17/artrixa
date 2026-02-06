@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 export type TicketStatus = "open" | "in_progress" | "closed";
 
@@ -119,6 +120,8 @@ export const useSupport = () => {
         mutationFn: async (initialMessage: string) => {
             if (!user) throw new Error("User not authenticated");
 
+            console.log("Creating ticket for user:", user.id);
+
             // 1. Create Ticket
             const { data: ticket, error: ticketError } = await supabase
                 .from("support_tickets" as any)
@@ -126,7 +129,12 @@ export const useSupport = () => {
                 .select()
                 .single();
 
-            if (ticketError) throw ticketError;
+            if (ticketError) {
+                console.error("Error creating ticket:", ticketError);
+                throw ticketError;
+            }
+
+            console.log("Ticket created:", ticket);
 
             // 2. Create Initial Message
             const { error: messageError } = await supabase
@@ -138,21 +146,28 @@ export const useSupport = () => {
                     is_staff_reply: false,
                 });
 
-            if (messageError) throw messageError;
+            if (messageError) {
+                console.error("Error creating initial message:", messageError);
+                throw messageError;
+            }
 
             return ticket;
         },
         onSuccess: (ticket) => {
             setActiveTicketId(ticket.id);
             queryClient.invalidateQueries({ queryKey: ["support-active-ticket"] });
+            toast.success("Atendimento iniciado! Aguarde um suporte.");
         },
+        onError: (error: any) => {
+            console.error("Mutation failed:", error);
+            toast.error(`Erro ao iniciar atendimento: ${error.message || "Erro desconhecido"}`);
+        }
     });
 
     // Send a message
     const sendMessageMutation = useMutation({
         mutationFn: async ({ content, ticketId }: { content: string; ticketId: string }) => {
             if (!user) throw new Error("User not authenticated");
-
 
             const { error } = await supabase
                 .from("support_messages" as any)
@@ -163,11 +178,17 @@ export const useSupport = () => {
                     is_staff_reply: false,
                 });
 
-            if (error) throw error;
+            if (error) {
+                console.error("Error sending message:", error);
+                throw error;
+            }
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["support-messages", activeTicketId] });
         },
+        onError: (error: any) => {
+            toast.error(`Erro ao enviar mensagem: ${error.message || "Erro desconhecido"}`);
+        }
     });
 
     return {
