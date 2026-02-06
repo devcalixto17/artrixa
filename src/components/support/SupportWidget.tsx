@@ -46,10 +46,17 @@ export function SupportWidget() {
         }
     };
 
-    if (!user || isAdmin || isFundador || isStaff) return null;
+    console.log("SupportWidget Debug:", { user: !!user, isAdmin, isFundador, isStaff });
+
+    if (!user || isAdmin || isFundador || isStaff) {
+        console.log("SupportWidget hidden because:", { notUser: !user, isAdmin, isFundador, isStaff });
+        return null;
+    }
+
+    console.log("SupportWidget Rendering!");
 
     return (
-        <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+        <div className="fixed bottom-6 right-6 z-[9999] flex flex-col items-end">
             {isOpen && (
                 <Card className="w-[350px] md:w-[400px] h-[500px] shadow-2xl border-primary/20 bg-card mb-4 flex flex-col overflow-hidden animate-in slide-in-from-bottom-5 duration-300">
                     <CardHeader className="bg-primary text-primary-foreground py-4 flex flex-row items-center justify-between shrink-0">
