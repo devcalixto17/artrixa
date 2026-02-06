@@ -84,17 +84,18 @@
 }
 
 @layer utilities {
+
   /* Neon glow effects */
   .neon-glow {
     text-shadow: 0 0 10px hsl(var(--neon-green)),
-                 0 0 20px hsl(var(--neon-green)),
-                 0 0 40px hsl(var(--neon-green) / 0.5);
+      0 0 20px hsl(var(--neon-green)),
+      0 0 40px hsl(var(--neon-green) / 0.5);
   }
 
   .neon-border {
     box-shadow: 0 0 5px hsl(var(--neon-green) / 0.5),
-                0 0 10px hsl(var(--neon-green) / 0.3),
-                inset 0 0 5px hsl(var(--neon-green) / 0.1);
+      0 0 10px hsl(var(--neon-green) / 0.3),
+      inset 0 0 5px hsl(var(--neon-green) / 0.1);
   }
 
   .card-hover {
@@ -104,27 +105,30 @@
   .card-hover:hover {
     transform: translateY(-4px);
     box-shadow: 0 10px 40px hsl(var(--neon-green) / 0.15),
-                0 0 20px hsl(var(--neon-green) / 0.1);
+      0 0 20px hsl(var(--neon-green) / 0.1);
   }
 
   /* Gradient backgrounds */
   .gradient-dark {
-    background: linear-gradient(180deg, 
-      hsl(var(--background)) 0%, 
-      hsl(var(--darker-surface)) 100%);
+    background: linear-gradient(180deg,
+        hsl(var(--background)) 0%,
+        hsl(var(--darker-surface)) 100%);
   }
 
   .gradient-card {
-    background: linear-gradient(135deg, 
-      hsl(var(--card)) 0%, 
-      hsl(var(--dark-surface)) 100%);
+    background: linear-gradient(135deg,
+        hsl(var(--card)) 0%,
+        hsl(var(--dark-surface)) 100%);
   }
 
   /* Animation keyframes */
   @keyframes pulse-neon {
-    0%, 100% {
+
+    0%,
+    100% {
       opacity: 1;
     }
+
     50% {
       opacity: 0.7;
     }
@@ -135,9 +139,12 @@
   }
 
   @keyframes float {
-    0%, 100% {
+
+    0%,
+    100% {
       transform: translateY(0);
     }
+
     50% {
       transform: translateY(-10px);
     }
@@ -149,10 +156,13 @@
 
   /* Role badge glow effects */
   @keyframes ray-pulse {
-    0%, 100% {
+
+    0%,
+    100% {
       opacity: 0.2;
       transform: rotate(var(--rotation)) scaleX(0.5);
     }
+
     50% {
       opacity: 0.8;
       transform: rotate(var(--rotation)) scaleX(1.2);
@@ -160,31 +170,59 @@
   }
 
   .fundador-glow {
-    filter: drop-shadow(0 0 8px hsla(303, 100%, 50%, 0.61)) 
-            drop-shadow(0 0 16px hsla(335, 99%, 45%, 0.932));
+    filter: drop-shadow(0 0 8px hsla(303, 100%, 50%, 0.61)) drop-shadow(0 0 16px hsla(335, 99%, 45%, 0.932));
   }
 
   .staff-glow {
-    filter: drop-shadow(0 0 8px hsl(217 91% 60% / 0.6)) 
-            drop-shadow(0 0 16px hsl(217 91% 60% / 0.4));
+    filter: drop-shadow(0 0 8px hsl(217 91% 60% / 0.6)) drop-shadow(0 0 16px hsl(217 91% 60% / 0.4));
   }
 
   .vip-glow {
-    filter: drop-shadow(0 0 8px hsl(185 85% 55% / 0.7)) 
-            drop-shadow(0 0 16px hsl(270 85% 60% / 0.5));
+    filter: drop-shadow(0 0 8px hsl(185 85% 55% / 0.7)) drop-shadow(0 0 16px hsl(270 85% 60% / 0.5));
   }
 
   @keyframes lightning-flicker {
-    0%, 100% { opacity: 0.4; }
-    10% { opacity: 1; }
-    20% { opacity: 0.3; }
-    30% { opacity: 0.9; }
-    40% { opacity: 0.5; }
-    50% { opacity: 1; }
-    60% { opacity: 0.4; }
-    70% { opacity: 0.8; }
-    80% { opacity: 0.3; }
-    90% { opacity: 0.9; }
+
+    0%,
+    100% {
+      opacity: 0.4;
+    }
+
+    10% {
+      opacity: 1;
+    }
+
+    20% {
+      opacity: 0.3;
+    }
+
+    30% {
+      opacity: 0.9;
+    }
+
+    40% {
+      opacity: 0.5;
+    }
+
+    50% {
+      opacity: 1;
+    }
+
+    60% {
+      opacity: 0.4;
+    }
+
+    70% {
+      opacity: 0.8;
+    }
+
+    80% {
+      opacity: 0.3;
+    }
+
+    90% {
+      opacity: 0.9;
+    }
   }
 }
 
@@ -193,10 +231,12 @@
     background-position: 0% 50%;
     filter: drop-shadow(0 0 6px rgba(243, 1, 1, 0.959));
   }
+
   50% {
     background-position: 100% 50%;
     filter: drop-shadow(0 0 10px rgb(126, 6, 238));
   }
+
   100% {
     background-position: 0% 50%;
     filter: drop-shadow(0 0 6px rgba(4, 204, 240, 0.986));
@@ -204,12 +244,12 @@
 }
 
 .founder-gradient {
-  background: linear-gradient(
-    90deg,
-    #f30404fb,   /* red-500 */
-    #8302fc,   /* purple-500 */
-    #ef4444
-  );
+  background: linear-gradient(90deg,
+      #f30404fb,
+      /* red-500 */
+      #8302fc,
+      /* purple-500 */
+      #ef4444);
   background-size: 300% 300%;
   animation: founderGlow 4s ease-in-out infinite;
 
@@ -226,7 +266,7 @@
   min-height: 380px;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  /* overflow: hidden; - Removido para permitir hover card aparecer fora do container */
 }
 
 .download-card-image {
