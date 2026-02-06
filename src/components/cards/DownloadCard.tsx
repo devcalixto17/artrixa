@@ -69,7 +69,10 @@ export const DownloadCard = ({
 
   return (
     <div className="group gradient-card rounded-lg border border-border card-hover download-card">
-      <Link to={`/download/${id}`}>
+      <Link
+        to={`/download/${id}`}
+        className="block w-full overflow-hidden rounded-t-lg"
+      >
         {/* Image */}
         <div className="download-card-image overflow-hidden rounded-t-lg">
           <img
