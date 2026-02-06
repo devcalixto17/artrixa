@@ -9,10 +9,8 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Send, User, CheckCircle2, XCircle, Search, Clock, MessageSquare } from "lucide-react";
+import { Send, CheckCircle2, XCircle, Search, Clock, MessageSquare } from "lucide-react";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 
 interface TicketWithProfile extends SupportTicket {
     profiles: {
@@ -29,13 +27,12 @@ export function AdminSupportPanel() {
     const scrollRef = useRef<HTMLDivElement>(null);
 
     // Fetch all open tickets
-    // Fetch all open tickets
     const { data: tickets, isLoading: loadingTickets, error: ticketsError } = useQuery({
         queryKey: ["admin-support-tickets"],
         queryFn: async () => {
             // 1. Fetch tickets
             const { data: ticketsData, error: ticketsError } = await supabase
-                .from("support_tickets" as any)
+                .from("support_tickets")
                 .select("*")
                 .neq("status", "closed")
                 .order("created_at", { ascending: false });
@@ -43,26 +40,25 @@ export function AdminSupportPanel() {
             if (ticketsError) throw ticketsError;
             if (!ticketsData || ticketsData.length === 0) return [];
 
-            // 2. Fetch profiles manually
-            const userIds = [...new Set(ticketsData.map((t: any) => t.user_id))];
+            // 2. Fetch profiles using user_id field
+            const userIds = [...new Set(ticketsData.map((t) => t.user_id))];
 
             const { data: profilesData } = await supabase
                 .from("profiles")
-                .select("id, username, avatar_url")
-                .in("id", userIds);
+                .select("user_id, username, avatar_url")
+                .in("user_id", userIds);
 
-            // 3. Map profiles to tickets
-            const profilesMap = (profilesData || []).reduce((acc: any, profile: any) => {
-                acc[profile.id] = profile;
+            // 3. Map profiles to tickets using user_id as key
+            const profilesMap = (profilesData || []).reduce((acc: Record<string, any>, profile) => {
+                acc[profile.user_id] = profile;
                 return acc;
             }, {});
 
-            return ticketsData.map((ticket: any) => ({
+            return ticketsData.map((ticket) => ({
                 ...ticket,
                 profiles: profilesMap[ticket.user_id] || { username: 'Usuário', avatar_url: null }
             })) as TicketWithProfile[];
         },
-        // Refetch every 30 seconds to update list, or rely on realtime
         refetchInterval: 30000,
     });
 
@@ -95,13 +91,13 @@ export function AdminSupportPanel() {
             if (!selectedTicketId) return [];
 
             const { data, error } = await supabase
-                .from("support_messages" as any)
+                .from("support_messages")
                 .select("*")
                 .eq("ticket_id", selectedTicketId)
                 .order("created_at", { ascending: true });
 
             if (error) throw error;
-            return data as SupportMessage[];
+            return (data ?? []) as SupportMessage[];
         },
         enabled: !!selectedTicketId,
     });
@@ -144,7 +140,7 @@ export function AdminSupportPanel() {
             if (!user || !selectedTicketId) return;
 
             const { error } = await supabase
-                .from("support_messages" as any)
+                .from("support_messages")
                 .insert({
                     ticket_id: selectedTicketId,
                     sender_id: user.id,
@@ -166,7 +162,7 @@ export function AdminSupportPanel() {
             if (!selectedTicketId) return;
 
             const { error } = await supabase
-                .from("support_tickets" as any)
+                .from("support_tickets")
                 .update({ status: "closed" })
                 .eq("id", selectedTicketId);
 
@@ -287,9 +283,7 @@ export function AdminSupportPanel() {
                             <ScrollArea className="h-full p-6">
                                 <div className="flex flex-col gap-6">
                                     {messages?.map((msg) => {
-                                        const isSystem = false; // Placeholder if we add system messages later
                                         const isMe = msg.is_staff_reply;
-                                        // In admin panel, "Me" is the staff. "Others" are the user.
 
                                         return (
                                             <div
