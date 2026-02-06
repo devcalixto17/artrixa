@@ -11,6 +11,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export const Header = () => {
   const { user, isAdmin, isFundador, signOut } = useAuth();
@@ -147,16 +153,7 @@ export const Header = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          import {
-            DropdownMenu,
-            DropdownMenuContent,
-            DropdownMenuItem,
-            DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
-          // ... existing imports ...
-
-          // ... inside component ...
 
           <nav className="hidden lg:flex items-center gap-1">
             {navLinks.map((link) => {
