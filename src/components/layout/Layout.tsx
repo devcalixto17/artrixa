@@ -10,12 +10,12 @@ interface LayoutProps {
 
 export const Layout = ({ children, showSidebar = true }: LayoutProps) => {
   return (
-    <div className="min-h-screen flex flex-col gradient-dark">
+    <div className="min-h-screen flex flex-col gradient-dark overflow-x-hidden">
       <Header />
       <main className="flex-1 container mx-auto px-4 py-8">
         {showSidebar ? (
           <div className="flex flex-col lg:flex-row gap-8">
-            <div className="flex-1">{children}</div>
+            <div className="flex-1 min-w-0">{children}</div>
             <Sidebar />
           </div>
         ) : (
