@@ -80,7 +80,7 @@ export const UserHoverCard = ({ userId, children }: UserHoverCardProps) => {
 
   const sortedRoles = (userRoles || ["user"])
     .sort((a, b) => (rolePriority[a] || 100) - (rolePriority[b] || 100));
-  
+
   const highestRole = sortedRoles[0] || "user";
   const role = roleConfig[highestRole] || roleConfig.user;
 
@@ -89,11 +89,11 @@ export const UserHoverCard = ({ userId, children }: UserHoverCardProps) => {
       <HoverCardTrigger asChild>
         {children}
       </HoverCardTrigger>
-      <HoverCardContent 
-        className="w-80 p-0 overflow-hidden" 
-        side="top" 
-        align="start" 
-        sideOffset={10} 
+      <HoverCardContent
+        className="w-80 p-0 overflow-hidden z-[9999]"
+        side="top"
+        align="start"
+        sideOffset={15}
       >
         {/* Banner do Perfil */}
         {profile?.banner_url && (
@@ -117,7 +117,7 @@ export const UserHoverCard = ({ userId, children }: UserHoverCardProps) => {
             </Avatar>
           </Link>
           <div className="space-y-1 flex-1">
-            <Link 
+            <Link
               to={`/profile/${userId}`}
               className="text-sm font-semibold hover:text-primary transition-colors" // Revertido para cor padrão
             >
