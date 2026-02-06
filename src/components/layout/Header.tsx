@@ -167,16 +167,16 @@ export const Header = () => {
                       <DropdownMenuItem onClick={() => navigate("/skins")} className="cursor-pointer font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 uppercase tracking-wide">
                         Todas as Skins
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => navigate("/category/skins-armas")} className="cursor-pointer font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 uppercase tracking-wide">
+                      <DropdownMenuItem onClick={() => navigate("/categoria/skins-armas")} className="cursor-pointer font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 uppercase tracking-wide">
                         Skins de Armas
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => navigate("/category/skins-facas")} className="cursor-pointer font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 uppercase tracking-wide">
+                      <DropdownMenuItem onClick={() => navigate("/categoria/skins-facas")} className="cursor-pointer font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 uppercase tracking-wide">
                         Skins de Facas
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => navigate("/category/skins-player")} className="cursor-pointer font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 uppercase tracking-wide">
+                      <DropdownMenuItem onClick={() => navigate("/categoria/skins-player")} className="cursor-pointer font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 uppercase tracking-wide">
                         Skins de Player
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => navigate("/category/skins-zombies")} className="cursor-pointer font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 uppercase tracking-wide">
+                      <DropdownMenuItem onClick={() => navigate("/categoria/skins-zombies")} className="cursor-pointer font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 uppercase tracking-wide">
                         Skins de Zombies
                       </DropdownMenuItem>
                     </DropdownMenuContent>
