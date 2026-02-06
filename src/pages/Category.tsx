@@ -16,7 +16,7 @@ const Category = () => {
         .select("*")
         .eq("slug", slug)
         .single();
-      
+
       if (error) throw error;
       return data;
     },
@@ -32,7 +32,7 @@ const Category = () => {
         .eq("category_id", category!.id)
         .eq("status", "approved")
         .order("created_at", { ascending: false });
-      
+
       if (error) throw error;
       return data;
     },
@@ -49,7 +49,7 @@ const Category = () => {
         .from("profiles")
         .select("user_id, username, avatar_url")
         .in("user_id", authorIds);
-      
+
       if (error) throw error;
       return data;
     },
@@ -100,6 +100,7 @@ const Category = () => {
                   id={download.id}
                   title={download.title}
                   imageUrl={download.image_url}
+                  description={download.description}
                   authorUserId={download.author_id}
                   authorName={authorInfo.username}
                   authorAvatar={authorInfo.avatar_url}

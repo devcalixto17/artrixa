@@ -17,10 +17,9 @@ import {
   DialogContent,
   DialogDescription,
   DialogFooter,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Users, Shield, Crown, Sparkles, Award, Trophy, Star, X, Download, Search, Bell, Check, Eye, Calendar, Send, ExternalLink } from "lucide-react";
+import { Users, Shield, Crown, Sparkles, Award, Trophy, Star, X, Download, Search, Bell, Check, Eye, Calendar, Send, ExternalLink, MessageSquare } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Database } from "@/integrations/supabase/types";
@@ -30,6 +29,7 @@ import { RolePermissionsManager } from "@/components/admin/RolePermissionsManage
 import { CustomRolesManager } from "@/components/admin/CustomRolesManager";
 import { UserRoleAssignment } from "@/components/admin/UserRoleAssignment";
 import { SentMessagesPanel } from "@/components/admin/SentMessagesPanel";
+import { AdminSupportPanel } from "@/components/support/AdminSupportPanel";
 import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -57,7 +57,7 @@ const Admin = () => {
   const { user, isFundador, isLoading: authLoading } = useAuth();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
-  
+
   const { data: users, isLoading: usersLoading } = useQuery({
     queryKey: ["admin-users"],
     queryFn: async () => {
@@ -65,21 +65,21 @@ const Admin = () => {
         .from("profiles")
         .select("*")
         .order("created_at", { ascending: false });
-      
+
       if (profilesError) throw profilesError;
-      
+
       const { data: roles, error: rolesError } = await supabase
         .from("user_roles")
         .select("*");
-      
+
       if (rolesError) throw rolesError;
-      
+
       const { data: userBadges, error: badgesError } = await supabase
         .from("user_badges")
         .select("*, badges(*)");
-      
+
       if (badgesError) throw badgesError;
-      
+
       return profiles.map((profile) => ({
         ...profile,
         role: roles.find((r) => r.user_id === profile.user_id)?.role || "user",
@@ -90,7 +90,7 @@ const Admin = () => {
     },
     enabled: !!user && isFundador,
   });
-  
+
   const { data: badges } = useQuery({
     queryKey: ["badges"],
     queryFn: async () => {
@@ -100,7 +100,7 @@ const Admin = () => {
     },
     enabled: !!user && isFundador,
   });
-  
+
   const { data: stats } = useQuery({
     queryKey: ["admin-stats"],
     queryFn: async () => {
@@ -109,7 +109,7 @@ const Admin = () => {
         supabase.from("downloads").select("id", { count: "exact", head: true }),
         supabase.from("categories").select("id", { count: "exact", head: true }),
       ]);
-      
+
       return {
         users: usersRes.count || 0,
         downloads: downloadsRes.count || 0,
@@ -118,15 +118,15 @@ const Admin = () => {
     },
     enabled: !!user && isFundador,
   });
-  
+
   // Filtrar usuários com base na busca
   const filteredUsers = useMemo(() => {
     if (!users) return [];
-    
+
     if (!searchQuery.trim()) return users;
-    
+
     const query = searchQuery.toLowerCase();
-    return users.filter((userData) => 
+    return users.filter((userData) =>
       (userData.username && userData.username.toLowerCase().includes(query)) ||
       (userData.user_id && userData.user_id.toLowerCase().includes(query))
     );
@@ -138,7 +138,7 @@ const Admin = () => {
         .from("user_roles")
         .update({ role: newRole })
         .eq("user_id", userId);
-      
+
       if (error) throw error;
     },
     onSuccess: () => {
@@ -159,7 +159,7 @@ const Admin = () => {
           badge_id: badgeId,
           awarded_by: user?.id,
         });
-      
+
       if (error) throw error;
     },
     onSuccess: () => {
@@ -178,7 +178,7 @@ const Admin = () => {
         .delete()
         .eq("user_id", userId)
         .eq("badge_id", badgeId);
-      
+
       if (error) throw error;
     },
     onSuccess: () => {
@@ -216,7 +216,7 @@ const Admin = () => {
           <Crown className="w-8 h-8 text-red-500" />
           <h1 className="text-3xl font-display font-bold text-foreground"> Painel do Fundador </h1>
         </div>
-        
+
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card className="bg-card border-border">
@@ -253,7 +253,7 @@ const Admin = () => {
             </CardContent>
           </Card>
         </div>
-        
+
         <Tabs defaultValue="notifications" className="space-y-4">
           <TabsList className="bg-muted flex-wrap">
             <TabsTrigger value="notifications" className="data-[state=active]:bg-background relative">
@@ -277,6 +277,10 @@ const Admin = () => {
               <Award className="w-4 h-4 mr-2" />
               Insígnias
             </TabsTrigger>
+            <TabsTrigger value="support" className="data-[state=active]:bg-background">
+              <MessageSquare className="w-4 h-4 mr-2" />
+              Suporte
+            </TabsTrigger>
             <TabsTrigger value="permissions" className="data-[state=active]:bg-background">
               <Shield className="w-4 h-4 mr-2" />
               Permissões
@@ -286,11 +290,11 @@ const Admin = () => {
               Cargos
             </TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="notifications" className="space-y-4">
             <NotificationsPanel />
           </TabsContent>
-          
+
           <TabsContent value="users" className="space-y-4">
             {/* Role Legend */}
             <Card className="bg-card border-border">
@@ -308,7 +312,7 @@ const Admin = () => {
                 </div>
               </CardContent>
             </Card>
-            
+
             {/* Search Bar */}
             <Card className="bg-card border-border">
               <CardContent className="py-4">
@@ -323,7 +327,7 @@ const Admin = () => {
                 </div>
               </CardContent>
             </Card>
-            
+
             {/* Users List */}
             <Card className="bg-card border-border">
               <CardHeader>
@@ -341,7 +345,7 @@ const Admin = () => {
                     {filteredUsers.map((userData) => {
                       const RoleIcon = roleConfig[userData.role as AppRole]?.icon || Users;
                       const roleColor = roleConfig[userData.role as AppRole]?.color || "text-muted-foreground";
-                      
+
                       return (
                         <div
                           key={userData.id}
@@ -353,17 +357,17 @@ const Admin = () => {
                               {userData.username?.[0]?.toUpperCase() || "U"}
                             </AvatarFallback>
                           </Avatar>
-                          
+
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
-                              <Link 
+                              <Link
                                 to={`/profile/${userData.user_id}`}
                                 className="font-semibold text-foreground truncate hover:text-primary transition-colors"
                               >
                                 {userData.username || "Usuário"}
                               </Link>
                               <RoleIcon className={`w-4 h-4 ${roleColor}`} />
-                              <Link 
+                              <Link
                                 to={`/profile/${userData.user_id}`}
                                 className="text-muted-foreground hover:text-primary transition-colors"
                                 title="Ver perfil"
@@ -371,7 +375,7 @@ const Admin = () => {
                                 <ExternalLink className="w-4 h-4" />
                               </Link>
                             </div>
-                            
+
                             {/* User Badges */}
                             <div className="flex flex-wrap gap-1 mt-2">
                               {userData.badges?.map((badge: any) => {
@@ -402,7 +406,7 @@ const Admin = () => {
                               })}
                             </div>
                           </div>
-                          
+
                           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                             {/* Add Badge */}
                             <Select
@@ -435,7 +439,7 @@ const Admin = () => {
                                   })}
                               </SelectContent>
                             </Select>
-                            
+
                             {/* Change Role */}
                             <Select
                               value={userData.role}
@@ -479,8 +483,8 @@ const Admin = () => {
               </CardContent>
             </Card>
           </TabsContent>
-          
-          
+
+
           <TabsContent value="sent-messages" className="space-y-4">
             <SentMessagesPanel />
           </TabsContent>
@@ -500,6 +504,10 @@ const Admin = () => {
           <TabsContent value="custom-roles" className="space-y-4">
             <UserRoleAssignment />
             <CustomRolesManager />
+          </TabsContent>
+
+          <TabsContent value="support" className="space-y-4">
+            <AdminSupportPanel />
           </TabsContent>
         </Tabs>
       </div>

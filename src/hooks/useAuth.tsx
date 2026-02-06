@@ -9,6 +9,7 @@ interface AuthContextType {
   session: Session | null;
   isAdmin: boolean;
   isFundador: boolean;
+  isStaff: boolean;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, username: string) => Promise<{ error: Error | null }>;
@@ -22,6 +23,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isFundador, setIsFundador] = useState(false);
+  const [isStaff, setIsStaff] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const lastCheckedUserId = useRef<string | null>(null);
@@ -37,18 +39,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .select("role")
         .eq("user_id", userId)
         .maybeSingle();
-      
+
       if (!error && data) {
         setIsAdmin(data.role === "admin" || data.role === "fundador");
         setIsFundador(data.role === "fundador");
+        setIsStaff(data.role === "staff");
       } else {
         setIsAdmin(false);
         setIsFundador(false);
+        setIsStaff(false);
       }
     } catch (err) {
       console.error("Error checking roles:", err);
       setIsAdmin(false);
       setIsFundador(false);
+      setIsStaff(false);
     }
   }, []);
 
@@ -70,10 +75,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (!mounted) return;
-        
+
         setSession(session);
         setUser(session?.user ?? null);
-        
+
         if (session?.user) {
           // Use setTimeout to avoid deadlock
           setTimeout(() => {
@@ -84,6 +89,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         } else {
           setIsAdmin(false);
           setIsFundador(false);
+          setIsStaff(false);
           lastCheckedUserId.current = null;
         }
       }
@@ -113,7 +119,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signUp = async (email: string, password: string, username: string) => {
     const redirectUrl = `${window.location.origin}/`;
-    
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -139,6 +145,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await supabase.auth.signOut();
     setIsAdmin(false);
     setIsFundador(false);
+    setIsStaff(false);
     toast.success("Logout realizado com sucesso!");
     navigate("/");
   };
@@ -150,6 +157,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         session,
         isAdmin,
         isFundador,
+        isStaff,
         isLoading,
         signIn,
         signUp,

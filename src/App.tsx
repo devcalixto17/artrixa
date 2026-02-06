@@ -23,6 +23,9 @@ import VipArea from "./pages/VipArea";
 
 const queryClient = new QueryClient();
 
+
+import { SupportWidget } from "@/components/support/SupportWidget";
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -48,6 +51,7 @@ const App = () => (
               <Route path="/vip" element={<VipArea />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <SupportWidget />
           </BanChecker>
         </AuthProvider>
       </BrowserRouter>
