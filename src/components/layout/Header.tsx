@@ -3,7 +3,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, User, LogOut, Shield, Menu, X, Plus, Bell } from "lucide-react";
+import { Search, User, LogOut, Shield, Menu, X, Plus, Bell, ChevronDown } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect, useRef } from "react";
@@ -160,8 +160,9 @@ export const Header = () => {
               if (link.name === "Skins") {
                 return (
                   <DropdownMenu key={link.path}>
-                    <DropdownMenuTrigger className="px-4 py-2 text-sm font-display font-bold text-muted-foreground hover:text-primary transition-colors tracking-wide uppercase outline-none flex items-center gap-1">
+                    <DropdownMenuTrigger className="px-4 py-2 text-sm font-display font-bold text-muted-foreground hover:text-primary transition-colors tracking-wide uppercase outline-none flex items-center gap-1 group data-[state=open]:text-primary">
                       Skins
+                      <ChevronDown className="w-4 h-4 transition-transform duration-200 group-data-[state=open]:rotate-180" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="w-48 bg-background border-border">
 
