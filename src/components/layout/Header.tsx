@@ -33,14 +33,14 @@ export const Header = () => {
 
   const performSearch = async (query: string) => {
     if (!query.trim()) return;
-    
+
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
 
     setIsSearching(true);
     setIsSearchOpen(true);
-    
+
     try {
       const fuzzyQuery = `%${query.trim().split('').join('%')}%`;
       const simpleQuery = `%${query.trim().replace(/\s+/g, '%')}%`;
@@ -54,7 +54,7 @@ export const Header = () => {
         .or(`title.ilike.${simpleQuery},description.ilike.${simpleQuery},title.ilike.${fuzzyQuery}`)
         .eq("status", "approved")
         .limit(10);
-      
+
       if (downloadError) {
         console.error("Erro na busca:", downloadError.message);
         setSearchResults([]);
@@ -67,14 +67,14 @@ export const Header = () => {
       }
 
       const authorIds = [...new Set(downloads.map(d => d.author_id).filter(Boolean))];
-      
+
       let profileMap = new Map();
       if (authorIds.length > 0) {
         const { data: profiles } = await supabase
           .from("profiles")
           .select("user_id, username, avatar_url")
           .in("user_id", authorIds);
-        
+
         profiles?.forEach(p => profileMap.set(p.user_id, p));
       }
 
@@ -82,7 +82,7 @@ export const Header = () => {
         ...d,
         author: d.author_id ? profileMap.get(d.author_id) : null
       }));
-      
+
       setSearchResults(results);
     } catch (err) {
       console.error("Erro inesperado na busca:", err);
@@ -115,7 +115,7 @@ export const Header = () => {
       searchTimeoutRef.current = setTimeout(() => {
         performSearch(searchQuery);
       }, 500);
-      
+
       return () => {
         if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
       };
@@ -142,23 +142,23 @@ export const Header = () => {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <span className="font-display text-2xl font-bold text-primary neon-glow"> CS1.6 </span>
-            <span className="font-display text-2xl font-bold text-foreground"> MODS </span>
+            <span className="font-display text-2xl font-black text-primary neon-glow tracking-wider">CS1.6 </span>
+            <span className="font-display text-2xl font-black text-foreground tracking-wider">MODS </span>
           </Link>
-          
+
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-1">
             {navLinks.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
-                className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+                className="px-4 py-2 text-sm font-display font-bold text-muted-foreground hover:text-primary transition-colors tracking-wide uppercase"
               >
                 {link.name}
               </Link>
             ))}
           </nav>
-          
+
           <div className="flex items-center gap-4">
             {/* Desktop Search */}
             <form onSubmit={handleSearchSubmit} className="hidden md:flex items-center gap-2 bg-secondary rounded-lg px-3 py-1">
@@ -172,7 +172,7 @@ export const Header = () => {
                 className="border-0 bg-transparent h-auto p-1 text-sm focus-visible:ring-0 w-40"
               />
             </form>
-            
+
             {user ? (
               <div className="hidden sm:flex items-center gap-2">
                 <Button variant="neon" size="sm" onClick={() => navigate("/downloads/new")}>
@@ -205,11 +205,11 @@ export const Header = () => {
                 <span className="hidden sm:inline">Entrar</span>
               </Button>
             )}
-            
+
             {/* Mobile Menu Button */}
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <Button
+              variant="ghost"
+              size="icon"
               className="lg:hidden"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
@@ -217,7 +217,7 @@ export const Header = () => {
             </Button>
           </div>
         </div>
-        
+
         {/* Mobile Search */}
         <div className="md:hidden py-2">
           <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 bg-secondary rounded-lg px-3 py-1">
@@ -233,7 +233,7 @@ export const Header = () => {
           </form>
         </div>
       </div>
-      
+
       {/* Mobile Navigation Menu */}
       {mobileMenuOpen && (
         <div className="lg:hidden bg-background border-t border-border">
@@ -242,18 +242,18 @@ export const Header = () => {
               <Link
                 key={link.path}
                 to={link.path}
-                className="block px-3 py-2 text-sm font-medium text-muted-foreground hover:text-primary hover:bg-secondary/50 rounded transition-colors"
+                className="block px-3 py-2 text-sm font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 rounded transition-colors tracking-wide uppercase"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {link.name}
               </Link>
             ))}
-            
+
             {user ? (
               <div className="pt-2 border-t border-border mt-2 space-y-2">
-                <Button 
-                  variant="neon" 
-                  size="sm" 
+                <Button
+                  variant="neon"
+                  size="sm"
                   className="w-full justify-start"
                   onClick={() => {
                     navigate("/downloads/new");
@@ -263,9 +263,9 @@ export const Header = () => {
                   <Plus className="w-4 h-4 mr-2" />
                   Publicar
                 </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+                <Button
+                  variant="ghost"
+                  size="sm"
                   className="w-full justify-start"
                   onClick={() => {
                     navigate(`/profile/${user.id}`);
@@ -276,9 +276,9 @@ export const Header = () => {
                   Perfil
                 </Button>
                 {(isAdmin || isFundador) && (
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     className="w-full justify-start relative"
                     onClick={() => {
                       navigate("/admin");
@@ -294,9 +294,9 @@ export const Header = () => {
                     )}
                   </Button>
                 )}
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+                <Button
+                  variant="ghost"
+                  size="sm"
                   className="w-full justify-start text-destructive hover:text-destructive"
                   onClick={handleSignOut}
                 >
@@ -306,9 +306,9 @@ export const Header = () => {
               </div>
             ) : (
               <div className="pt-2 border-t border-border mt-2">
-                <Button 
-                  variant="neon" 
-                  size="sm" 
+                <Button
+                  variant="neon"
+                  size="sm"
                   className="w-full justify-start"
                   onClick={() => {
                     navigate("/auth");
@@ -323,13 +323,13 @@ export const Header = () => {
           </div>
         </div>
       )}
-      
+
       <Dialog open={isSearchOpen} onOpenChange={setIsSearchOpen}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Resultados da busca para "{searchQuery}"</DialogTitle>
           </DialogHeader>
-          
+
           {isSearching ? (
             <div className="py-8 text-center">
               <p className="text-muted-foreground">Buscando...</p>
@@ -337,8 +337,8 @@ export const Header = () => {
           ) : searchResults.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-2">
               {searchResults.map((download) => (
-                <Card 
-                  key={download.id} 
+                <Card
+                  key={download.id}
                   className="cursor-pointer hover:bg-accent transition-colors"
                   onClick={() => {
                     navigate(`/download/${download.id}`);
@@ -348,9 +348,9 @@ export const Header = () => {
                 >
                   <CardContent className="p-3">
                     <div className="flex gap-3">
-                      <img 
-                        src={download.image_url || "/placeholder.svg"} 
-                        alt={download.title} 
+                      <img
+                        src={download.image_url || "/placeholder.svg"}
+                        alt={download.title}
                         className="w-16 h-16 rounded-md object-cover"
                       />
                       <div className="flex-1 min-w-0">
