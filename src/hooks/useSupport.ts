@@ -36,7 +36,7 @@ export const useSupport = () => {
             if (!user) return null;
 
             const { data, error } = await supabase
-                .from("support_tickets" as any)
+                .from("support_tickets")
                 .select("*")
                 .eq("user_id", user.id)
                 .neq("status", "closed")
@@ -64,13 +64,13 @@ export const useSupport = () => {
             if (!activeTicketId) return [];
 
             const { data, error } = await supabase
-                .from("support_messages" as any)
+                .from("support_messages")
                 .select("*")
                 .eq("ticket_id", activeTicketId)
                 .order("created_at", { ascending: true });
 
             if (error) throw error;
-            return data as SupportMessage[];
+            return (data ?? []) as SupportMessage[];
         },
         enabled: !!activeTicketId,
     });
@@ -89,7 +89,7 @@ export const useSupport = () => {
                     table: "support_messages",
                     filter: `ticket_id=eq.${activeTicketId}`,
                 },
-                (payload) => {
+                () => {
                     queryClient.invalidateQueries({ queryKey: ["support-messages", activeTicketId] });
                 }
             )
@@ -120,11 +120,9 @@ export const useSupport = () => {
         mutationFn: async (initialMessage: string) => {
             if (!user) throw new Error("User not authenticated");
 
-            console.log("Creating ticket for user:", user.id);
-
             // 1. Create Ticket
             const { data: ticket, error: ticketError } = await supabase
-                .from("support_tickets" as any)
+                .from("support_tickets")
                 .insert({ user_id: user.id, status: "open" })
                 .select()
                 .single();
@@ -134,11 +132,9 @@ export const useSupport = () => {
                 throw ticketError;
             }
 
-            console.log("Ticket created:", ticket);
-
             // 2. Create Initial Message
             const { error: messageError } = await supabase
-                .from("support_messages" as any)
+                .from("support_messages")
                 .insert({
                     ticket_id: ticket.id,
                     sender_id: user.id,
@@ -170,7 +166,7 @@ export const useSupport = () => {
             if (!user) throw new Error("User not authenticated");
 
             const { error } = await supabase
-                .from("support_messages" as any)
+                .from("support_messages")
                 .insert({
                     ticket_id: ticketId,
                     sender_id: user.id,
