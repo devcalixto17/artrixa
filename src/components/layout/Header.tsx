@@ -164,9 +164,7 @@ export const Header = () => {
                       Skins
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="w-48 bg-background border-border">
-                      <DropdownMenuItem onClick={() => navigate("/skins")} className="cursor-pointer font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 uppercase tracking-wide">
-                        Todas as Skins
-                      </DropdownMenuItem>
+
                       <DropdownMenuItem onClick={() => navigate("/categoria/skins-armas")} className="cursor-pointer font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 uppercase tracking-wide">
                         Skins de Armas
                       </DropdownMenuItem>
