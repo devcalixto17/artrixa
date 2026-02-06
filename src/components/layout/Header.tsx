@@ -147,16 +147,56 @@ export const Header = () => {
           </Link>
 
           {/* Desktop Navigation */}
+          import {
+            DropdownMenu,
+            DropdownMenuContent,
+            DropdownMenuItem,
+            DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+          // ... existing imports ...
+
+          // ... inside component ...
+
           <nav className="hidden lg:flex items-center gap-1">
-            {navLinks.map((link) => (
-              <Link
-                key={link.path}
-                to={link.path}
-                className="px-4 py-2 text-sm font-display font-bold text-muted-foreground hover:text-primary transition-colors tracking-wide uppercase"
-              >
-                {link.name}
-              </Link>
-            ))}
+            {navLinks.map((link) => {
+              if (link.name === "Skins") {
+                return (
+                  <DropdownMenu key={link.path}>
+                    <DropdownMenuTrigger className="px-4 py-2 text-sm font-display font-bold text-muted-foreground hover:text-primary transition-colors tracking-wide uppercase outline-none flex items-center gap-1">
+                      Skins
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-48 bg-background border-border">
+                      <DropdownMenuItem onClick={() => navigate("/skins")} className="cursor-pointer font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 uppercase tracking-wide">
+                        Todas as Skins
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate("/category/skins-armas")} className="cursor-pointer font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 uppercase tracking-wide">
+                        Skins de Armas
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate("/category/skins-facas")} className="cursor-pointer font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 uppercase tracking-wide">
+                        Skins de Facas
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate("/category/skins-player")} className="cursor-pointer font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 uppercase tracking-wide">
+                        Skins de Player
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate("/category/skins-zombies")} className="cursor-pointer font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 uppercase tracking-wide">
+                        Skins de Zombies
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                );
+              }
+
+              return (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  className="px-4 py-2 text-sm font-display font-bold text-muted-foreground hover:text-primary transition-colors tracking-wide uppercase"
+                >
+                  {link.name}
+                </Link>
+              );
+            })}
           </nav>
 
           <div className="flex items-center gap-4">

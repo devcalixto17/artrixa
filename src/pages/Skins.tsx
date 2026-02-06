@@ -28,39 +28,31 @@ const categoryIcons: Record<string, any> = {
 };
 
 export default function Skins() {
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  // Removido estado e query de categorias, pois agora é tudo via Header
 
-  /** 🔹 Busca categorias de skins */
-  const { data: categories, isLoading: loadingCategories } = useQuery({
-    queryKey: ["skins-categories"],
+  /** 🔹 Busca TODAS as skins de todas as categorias de skin conhecidas */
+  const { data: allDownloads, isLoading } = useQuery({
+    queryKey: ["all-skins-downloads-page"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Slugs das categorias de skins
+      const skinSlugs = [
+        "skins-armas",
+        "skins-facas",
+        "skins-player",
+        "skins-zombies",
+      ];
+
+      // Primeiro pegamos os IDs dessas categorias
+      const { data: categories } = await supabase
         .from("categories")
-        .select("id, name, slug")
-        .in("slug", SKIN_SLUGS)
-        .order("name");
+        .select("id")
+        .in("slug", skinSlugs);
 
-      if (error) throw error;
-      console.log("Categories loaded:", data);
-      return data || [];
-    },
-  });
-
-  // Selecionar primeira categoria automaticamente quando carregar
-  useEffect(() => {
-    if (categories && categories.length > 0 && !activeCategory) {
-      setActiveCategory(categories[0].id);
-    }
-  }, [categories, activeCategory]);
-
-  /** 🔹 Busca TODAS as skins de todas as categorias */
-  const { data: allDownloads, isLoading: loadingAll } = useQuery({
-    queryKey: ["all-skins-downloads"],
-    queryFn: async () => {
       if (!categories || categories.length === 0) return [];
-      
+
       const categoryIds = categories.map(c => c.id);
-      
+
+      // Buscamos os downloads dessas categorias
       const { data, error } = await supabase
         .from("downloads")
         .select(`
@@ -76,15 +68,7 @@ export default function Skins() {
       console.log("All skins downloads:", data);
       return data || [];
     },
-    enabled: !!categories && categories.length > 0,
   });
-
-  // Filtrar downloads pela categoria ativa
-  const filteredDownloads = activeCategory === "all" 
-    ? allDownloads 
-    : allDownloads?.filter(d => d.category_id === activeCategory);
-
-  const isLoading = loadingCategories || loadingAll;
 
   return (
     <Layout>
@@ -95,52 +79,16 @@ export default function Skins() {
             Skins
           </h1>
           <p className="text-muted-foreground">
-            Personalize seu jogo com skins exclusivas
+            Explore nossa coleção completa de skins. Use o menu principal para filtrar por categoria específica.
           </p>
         </div>
 
-        {/* Botões de categorias */}
-        <div className="flex flex-wrap gap-3 mb-8">
-          {/* Botão "Todas" */}
-          <Button
-            variant={activeCategory === "all" ? "default" : "outline"}
-            onClick={() => setActiveCategory("all")}
-            className="gap-2"
-          >
-            <Layers className="w-4 h-4" />
-            Todas
-          </Button>
-
-          {loadingCategories ? (
-            <>
-              <Skeleton className="h-10 w-32" />
-              <Skeleton className="h-10 w-32" />
-              <Skeleton className="h-10 w-32" />
-            </>
-          ) : (
-            categories?.map((cat) => {
-              const Icon = categoryIcons[cat.slug] || Layers;
-              const isActive = activeCategory === cat.id;
-
-              return (
-                <Button
-                  key={cat.id}
-                  variant={isActive ? "default" : "outline"}
-                  onClick={() => setActiveCategory(cat.id)}
-                  className="gap-2"
-                >
-                  <Icon className="w-4 h-4" />
-                  {cat.name}
-                </Button>
-              );
-            })
-          )}
-        </div>
+        {/* Removed Buttons Section */}
 
         {/* Contador de resultados */}
-        {filteredDownloads && filteredDownloads.length > 0 && (
+        {allDownloads && allDownloads.length > 0 && (
           <p className="text-sm text-muted-foreground mb-4">
-            {filteredDownloads.length} skin(s) encontrada(s)
+            {allDownloads.length} skin(s) encontrada(s) no total
           </p>
         )}
 
@@ -151,9 +99,9 @@ export default function Skins() {
               <Skeleton key={i} className="h-80 rounded-lg" />
             ))}
           </div>
-        ) : filteredDownloads && filteredDownloads.length > 0 ? (
+        ) : allDownloads && allDownloads.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredDownloads.map((download: any) => (
+            {allDownloads.map((download: any) => (
               <DownloadCard
                 key={download.id}
                 id={download.id}
@@ -172,7 +120,7 @@ export default function Skins() {
         ) : (
           <div className="text-center py-16 text-muted-foreground">
             <Layers className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p>Nenhuma skin encontrada nesta categoria</p>
+            <p>Nenhuma skin encontrada.</p>
           </div>
         )}
       </div>
