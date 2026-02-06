@@ -89,7 +89,7 @@ export const DownloadCard = ({
               {categoryName}
             </span>
           )}
-          <h3 className="font-display text-lg font-bold text-foreground group-hover:text-primary transition-colors line-clamp-2">
+          <h3 className="font-display text-lg font-bold text-primary group-hover:text-primary/80 transition-colors line-clamp-2">
             {title}
           </h3>
           {plainDescription && (

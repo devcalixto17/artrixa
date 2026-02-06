@@ -19,7 +19,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["Rajdhani", "sans-serif"],
+        sans: ["Montserrat", "sans-serif"],
         display: ["Orbitron", "sans-serif"],
       },
       colors: {
