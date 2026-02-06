@@ -160,9 +160,9 @@ export const Header = () => {
               if (link.name === "Skins") {
                 return (
                   <DropdownMenu key={link.path}>
-                    <DropdownMenuTrigger className="px-4 py-2 text-sm font-display font-bold text-muted-foreground hover:text-primary transition-colors tracking-wide uppercase outline-none flex items-center gap-1 group data-[state=open]:text-primary">
+                    <DropdownMenuTrigger className="px-2 py-2 text-xs font-display font-bold text-muted-foreground hover:text-primary transition-colors tracking-wide uppercase outline-none flex items-center gap-1 group data-[state=open]:text-primary">
                       Skins
-                      <ChevronDown className="w-4 h-4 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                      <ChevronDown className="w-3 h-3 transition-transform duration-200 group-data-[state=open]:rotate-180" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="w-48 bg-background border-border">
 
@@ -187,7 +187,7 @@ export const Header = () => {
                 <Link
                   key={link.path}
                   to={link.path}
-                  className="px-4 py-2 text-sm font-display font-bold text-muted-foreground hover:text-primary transition-colors tracking-wide uppercase"
+                  className="px-2 py-2 text-xs font-display font-bold text-muted-foreground hover:text-primary transition-colors tracking-wide uppercase"
                 >
                   {link.name}
                 </Link>
@@ -211,33 +211,33 @@ export const Header = () => {
 
             {user ? (
               <div className="hidden sm:flex items-center gap-2">
-                <Button variant="neon" size="sm" onClick={() => navigate("/downloads/new")}>
-                  <Plus className="w-4 h-4" />
-                  <span className="hidden sm:inline">Publicar</span>
+                <Button variant="neon" size="sm" onClick={() => navigate("/downloads/new")} className="h-8 px-2 text-xs">
+                  <Plus className="w-3 h-3 mr-1" />
+                  <span className="hidden xl:inline">Publicar</span>
                 </Button>
-                <Button variant="ghost" size="sm" onClick={() => navigate(`/profile/${user.id}`)}>
-                  <User className="w-4 h-4" />
-                  <span className="hidden sm:inline">Perfil</span>
+                <Button variant="ghost" size="sm" onClick={() => navigate(`/profile/${user.id}`)} className="h-8 px-2 text-xs">
+                  <User className="w-3 h-3 mr-1" />
+                  <span className="hidden xl:inline">Perfil</span>
                 </Button>
                 {(isAdmin || isFundador) && (
-                  <Button variant="ghost" size="sm" onClick={() => navigate("/admin")} className="relative">
-                    <Shield className="w-4 h-4" />
-                    <span className="hidden sm:inline">{isFundador ? "Fundador" : "Admin"}</span>
+                  <Button variant="ghost" size="sm" onClick={() => navigate("/admin")} className="relative h-8 px-2 text-xs">
+                    <Shield className="w-3 h-3 mr-1" />
+                    <span className="hidden xl:inline">{isFundador ? "Fundador" : "Admin"}</span>
                     {pendingCount && pendingCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                      <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[10px] rounded-full h-3 w-3 flex items-center justify-center">
                         {pendingCount > 9 ? "9+" : pendingCount}
                       </span>
                     )}
                   </Button>
                 )}
-                <Button variant="ghost" size="sm" onClick={handleSignOut}>
-                  <LogOut className="w-4 h-4" />
-                  <span className="hidden sm:inline">Sair</span>
+                <Button variant="ghost" size="sm" onClick={handleSignOut} className="h-8 px-2">
+                  <LogOut className="w-3 h-3" />
+                  <span className="sr-only">Sair</span>
                 </Button>
               </div>
             ) : (
-              <Button variant="neon" size="sm" onClick={() => navigate("/auth")}>
-                <User className="w-4 h-4" />
+              <Button variant="neon" size="sm" onClick={() => navigate("/auth")} className="h-8 px-3 text-xs">
+                <User className="w-3 h-3 mr-1" />
                 <span className="hidden sm:inline">Entrar</span>
               </Button>
             )}
