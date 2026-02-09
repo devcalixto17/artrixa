@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export const Header = () => {
-  const { user, isAdmin, isFundador, signOut } = useAuth();
+  const { user, isAdmin, isFundador, isStaff, signOut } = useAuth();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -108,7 +108,7 @@ export const Header = () => {
       if (error) return 0;
       return count || 0;
     },
-    enabled: isAdmin || isFundador,
+    enabled: isAdmin || isFundador || isStaff,
     refetchInterval: 30000,
   });
 
@@ -219,10 +219,10 @@ export const Header = () => {
                   <User className="w-3 h-3 mr-1" />
                   <span className="hidden xl:inline">Perfil</span>
                 </Button>
-                {(isAdmin || isFundador) && (
+                {(isAdmin || isFundador || isStaff) && (
                   <Button variant="ghost" size="sm" onClick={() => navigate("/admin")} className="relative h-8 px-2 text-xs">
                     <Shield className="w-3 h-3 mr-1" />
-                    <span className="hidden xl:inline">{isFundador ? "Fundador" : "Admin"}</span>
+                    <span className="hidden xl:inline">{isFundador ? "Fundador" : isAdmin ? "Admin" : "Painel"}</span>
                     {pendingCount && pendingCount > 0 && (
                       <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[10px] rounded-full h-3 w-3 flex items-center justify-center">
                         {pendingCount > 9 ? "9+" : pendingCount}
@@ -311,7 +311,7 @@ export const Header = () => {
                   <User className="w-4 h-4 mr-2" />
                   Perfil
                 </Button>
-                {(isAdmin || isFundador) && (
+                {(isAdmin || isFundador || isStaff) && (
                   <Button
                     variant="ghost"
                     size="sm"
@@ -322,7 +322,7 @@ export const Header = () => {
                     }}
                   >
                     <Shield className="w-4 h-4 mr-2" />
-                    {isFundador ? "Fundador" : "Admin"}
+                    {isFundador ? "Fundador" : isAdmin ? "Admin" : "Painel"}
                     {pendingCount && pendingCount > 0 && (
                       <span className="absolute -top-1 -right-2 bg-destructive text-destructive-foreground text-xs rounded-full h-4 w-4 flex items-center justify-center">
                         {pendingCount > 9 ? "9+" : pendingCount}
