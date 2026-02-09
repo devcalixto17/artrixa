@@ -7,10 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
-import { 
-  Download, 
-  Calendar, 
-  User, 
+import {
+  Download,
+  Calendar,
+  User,
   ArrowLeft,
   Play,
   Trash2,
@@ -26,6 +26,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { CommentSection } from "@/components/comments/CommentSection";
 import { UserHoverCard } from "@/components/profile/UserHoverCard";
 import { Link as RouterLink } from "react-router-dom";
+import { CommandBox } from "@/components/downloads/CommandBox";
 
 export default function DownloadDetail() {
   // Helper to convert YouTube URLs to embed format
@@ -53,7 +54,7 @@ export default function DownloadDetail() {
         `)
         .eq("id", id)
         .maybeSingle();
-      
+
       if (error) throw error;
       if (!data) return null;
 
@@ -81,7 +82,7 @@ export default function DownloadDetail() {
         .select("*", { count: "exact", head: true })
         .eq("author_id", downloadData?.author_id)
         .eq("status", "approved");
-      
+
       if (error) throw error;
       return count || 0;
     },
@@ -99,7 +100,7 @@ export default function DownloadDetail() {
         .eq("user_id", user.id)
         .eq("role", "fundador")
         .maybeSingle();
-      
+
       if (error) throw error;
       return !!data;
     },
@@ -112,12 +113,12 @@ export default function DownloadDetail() {
   const deleteDownloadMutation = useMutation({
     mutationFn: async () => {
       if (!id) throw new Error("ID não encontrado");
-      
+
       const { error } = await supabase
         .from("downloads")
         .delete()
         .eq("id", id);
-      
+
       if (error) throw error;
     },
     onSuccess: () => {
@@ -141,14 +142,14 @@ export default function DownloadDetail() {
     queryKey: ["download-tracking", id, user?.id],
     queryFn: async () => {
       if (!user) return false;
-      
+
       const { data, error } = await supabase
         .from("download_tracking")
         .select("id")
         .eq("download_id", id)
         .eq("user_id", user.id)
         .maybeSingle();
-      
+
       if (error) throw error;
       return !!data;
     },
@@ -173,7 +174,7 @@ export default function DownloadDetail() {
           .from("downloads")
           .update({ download_count: (downloadData?.download_count || 0) + 1 })
           .eq("id", id);
-        
+
         if (updateError) throw updateError;
       }
     },
@@ -200,7 +201,7 @@ export default function DownloadDetail() {
       if (!hasDownloaded) {
         trackDownloadMutation.mutate();
       }
-      
+
       // Trigger download
       const link = document.createElement("a");
       link.href = downloadData.download_url;
@@ -280,7 +281,7 @@ export default function DownloadDetail() {
 
             {/* Main Image */}
             {downloadData.image_url && (
-              <div 
+              <div
                 className="relative w-full rounded-lg overflow-hidden cursor-pointer"
                 onClick={() => setSelectedImage(downloadData.image_url)}
               >
@@ -297,7 +298,7 @@ export default function DownloadDetail() {
               <CardContent className="pt-6">
                 <h2 className="text-xl font-semibold mb-4">Descrição</h2>
                 {downloadData.description ? (
-                  <div 
+                  <div
                     className="prose prose-sm max-w-none text-muted-foreground [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-400"
                     dangerouslySetInnerHTML={{ __html: downloadData.description }}
                   />
@@ -306,6 +307,11 @@ export default function DownloadDetail() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Commands Section */}
+            {downloadData.commands && (
+              <CommandBox commands={downloadData.commands} />
+            )}
 
             {/* Video */}
             {downloadData.video_url && (
@@ -367,8 +373,8 @@ export default function DownloadDetail() {
             {/* Download Card */}
             <Card>
               <CardContent className="pt-6 space-y-4">
-                <Button 
-                  className="w-full gap-2" 
+                <Button
+                  className="w-full gap-2"
                   size="lg"
                   onClick={handleDownload}
                 >
@@ -379,8 +385,8 @@ export default function DownloadDetail() {
                 {/* Edit button for author or Fundador */}
                 {canEdit && (
                   <RouterLink to={`/downloads/edit/${id}`}>
-                    <Button 
-                      className="w-full gap-2" 
+                    <Button
+                      className="w-full gap-2"
                       size="lg"
                       variant="outline"
                     >
@@ -392,8 +398,8 @@ export default function DownloadDetail() {
 
                 {/* Delete button for Fundador */}
                 {isFundador && (
-                  <Button 
-                    className="w-full gap-2" 
+                  <Button
+                    className="w-full gap-2"
                     size="lg"
                     variant="destructive"
                     onClick={() => deleteDownloadMutation.mutate()}

@@ -31,6 +31,7 @@ export default function CreateDownload() {
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [commands, setCommands] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [downloadType, setDownloadType] = useState<"link" | "file">("link");
@@ -88,6 +89,7 @@ export default function CreateDownload() {
       const { error } = await supabase.from("downloads").insert({
         title,
         description,
+        commands: commands || null,
         category_id: categoryId || null,
         image_url: imageUrl || null,
         download_url: finalDownloadUrl || null,
@@ -102,8 +104,8 @@ export default function CreateDownload() {
     onSuccess: () => {
       toast({
         title: isAdmin ? "Publicação criada!" : "Publicação enviada!",
-        description: isAdmin 
-          ? "Sua publicação foi criada com sucesso." 
+        description: isAdmin
+          ? "Sua publicação foi criada com sucesso."
           : "Sua publicação foi enviada para aprovação.",
       });
       navigate("/downloads");
@@ -137,7 +139,7 @@ export default function CreateDownload() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validações obrigatórias
     if (!title.trim()) {
       toast({
@@ -268,6 +270,26 @@ export default function CreateDownload() {
                   onChange={setDescription}
                   placeholder="Descreva sua publicação em detalhes... (Você pode formatar o texto, mudar cores, fontes e tamanhos)"
                 />
+              </div>
+
+              {/* Commands */}
+              <div className="space-y-2">
+                <Label htmlFor="commands">Comandos (⌨️ Opcional)</Label>
+                <div className="relative">
+                  <textarea
+                    id="commands"
+                    value={commands}
+                    onChange={(e) => setCommands(e.target.value)}
+                    placeholder="// Exemplo de comandos:&#10;amx_help&#10;say /money"
+                    className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 font-mono shadow-inner"
+                  />
+                  <div className="absolute bottom-2 right-2 text-[10px] text-muted-foreground bg-background/50 px-1 rounded">
+                    Estilo Código
+                  </div>
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  Insira um comando por linha.
+                </p>
               </div>
 
               {/* Category */}
@@ -404,8 +426,8 @@ export default function CreateDownload() {
 
               {/* Submit */}
               <div className="flex gap-4">
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   disabled={createMutation.isPending || isUploadingFile}
                   className="gap-2"
                 >

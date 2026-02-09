@@ -30,6 +30,7 @@ export default function EditDownload() {
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [commands, setCommands] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [downloadType, setDownloadType] = useState<"link" | "file">("link");
@@ -63,6 +64,7 @@ export default function EditDownload() {
     if (download) {
       setTitle(download.title);
       setDescription(download.description || "");
+      setCommands(download.commands || "");
       setCategoryId(download.category_id || "");
       setImageUrl(download.image_url || "");
       setDownloadUrl(download.download_url || "");
@@ -124,6 +126,7 @@ export default function EditDownload() {
         .update({
           title,
           description,
+          commands: commands || null,
           category_id: categoryId || null,
           image_url: imageUrl || null,
           download_url: finalDownloadUrl || null,
@@ -290,6 +293,26 @@ export default function EditDownload() {
                 />
               </div>
 
+              {/* Commands */}
+              <div className="space-y-2">
+                <Label htmlFor="commands">Comandos (⌨️ Opcional)</Label>
+                <div className="relative">
+                  <textarea
+                    id="commands"
+                    value={commands}
+                    onChange={(e) => setCommands(e.target.value)}
+                    placeholder="// Exemplo de comandos:&#10;amx_help&#10;say /money"
+                    className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 font-mono shadow-inner"
+                  />
+                  <div className="absolute bottom-2 right-2 text-[10px] text-muted-foreground bg-background/50 px-1 rounded">
+                    Estilo Código
+                  </div>
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  Insira um comando por linha.
+                </p>
+              </div>
+
               {/* Category */}
               <div className="space-y-2">
                 <Label>Categoria *</Label>
@@ -376,8 +399,8 @@ export default function EditDownload() {
                       {downloadFile
                         ? downloadFile.name
                         : downloadUrl
-                        ? "Manter arquivo atual"
-                        : "Selecionar Arquivo"}
+                          ? "Manter arquivo atual"
+                          : "Selecionar Arquivo"}
                     </Button>
                     {downloadFile && (
                       <p className="text-sm text-muted-foreground">
