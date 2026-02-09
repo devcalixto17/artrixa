@@ -101,38 +101,38 @@ export const DownloadCard = ({
       </Link>
 
       {/* Footer */}
-      <div className="download-card-footer">
-        <div className="flex items-center justify-between text-xs text-muted-foreground border-t border-border pt-3">
+      <div className="download-card-footer overflow-hidden">
+        <div className="flex items-center justify-between text-xs text-muted-foreground border-t border-border pt-3 gap-2 min-w-0">
           {/* Author */}
           {authorUserId ? (
             <UserHoverCard userId={authorUserId}>
               <Link
                 to={`/profile/${authorUserId}`}
-                className={`flex items-center gap-2 hover:text-foreground transition-colors ${roleColorClass}`}
+                className={`flex items-center gap-1.5 hover:text-foreground transition-colors min-w-0 ${roleColorClass}`}
                 onClick={(e) => e.stopPropagation()}
               >
-                <Avatar className="h-6 w-6">
+                <Avatar className="h-6 w-6 shrink-0">
                   <AvatarImage src={authorAvatar || undefined} />
                   <AvatarFallback>
                     <User className="h-3 w-3" />
                   </AvatarFallback>
                 </Avatar>
-                <span>{authorName || "Usuário"}</span>
+                <span className="truncate">{authorName || "Usuário"}</span>
               </Link>
             </UserHoverCard>
           ) : (
-            <span className="flex items-center gap-2">
-              <Avatar className="h-6 w-6">
+            <span className="flex items-center gap-1.5 min-w-0">
+              <Avatar className="h-6 w-6 shrink-0">
                 <AvatarFallback>
                   <User className="h-3 w-3" />
                 </AvatarFallback>
               </Avatar>
-              <span>{authorName || "Usuário"}</span>
+              <span className="truncate">{authorName || "Usuário"}</span>
             </span>
           )}
 
           {/* Stats */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 shrink-0">
             <span className="flex items-center gap-1">
               <Download className="w-3 h-3" />
               {downloadCount || 0}
