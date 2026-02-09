@@ -27,17 +27,29 @@ export const BanChecker = ({ children }: { children: React.ReactNode }) => {
   }, [isBanned, isLoading, user, location.pathname, navigate]);
 
   useEffect(() => {
-    if (!isLoading && user && isKicked) {
+    // Only show if we have an active kick with a reason (or it's explicitly a kick type)
+    // and we're not currently in the process of acknowledging it
+    if (!isLoading && user && isKicked && activeModeration && activeModeration.is_active) {
       setShowKickModal(true);
+    } else if (!isKicked || !user) {
+      setShowKickModal(false);
     }
-  }, [isKicked, isLoading, user]);
+  }, [isKicked, isLoading, user, activeModeration]);
 
   const handleKickConfirmation = async () => {
-    if (activeModeration) {
+    if (activeModeration && activeModeration.is_active) {
       // Deactivate the kick via RPC (bypasses RLS issues for the user)
       await supabase.rpc('acknowledge_user_kick');
 
-      // Close modal and sign out
+      // Close modal immediately
+      setShowKickModal(false);
+
+      // Delay signout slightly to ensure state is clean
+      setTimeout(async () => {
+        await signOut();
+      }, 100);
+    } else {
+      // If we somehow lost the record but modal is open, just sign out
       setShowKickModal(false);
       await signOut();
     }
