@@ -255,7 +255,7 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="notifications" className="space-y-4">
-          <TabsList className="bg-muted flex-wrap">
+          <TabsList className="bg-muted flex-wrap h-auto gap-1 p-1">
             <TabsTrigger value="notifications" className="data-[state=active]:bg-background relative">
               <Bell className="w-4 h-4 mr-2" />
               Notificações

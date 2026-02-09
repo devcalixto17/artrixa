@@ -13,7 +13,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Bold, Italic, Underline, Palette, Type, ALargeSmall } from "lucide-react";
+import { Bold, Italic, Underline, Palette, Type, ALargeSmall, Link2 } from "lucide-react";
 
 interface RichTextEditorProps {
   value: string;
@@ -90,6 +90,29 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
     execCommand("fontName", font);
   };
 
+  const applyLink = () => {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
+      alert("Selecione uma palavra ou trecho de texto primeiro.");
+      return;
+    }
+    const url = prompt("Digite a URL do link:");
+    if (url) {
+      execCommand("createLink", url);
+      // Style the link
+      if (editorRef.current) {
+        const links = editorRef.current.querySelectorAll("a");
+        links.forEach((link) => {
+          link.style.color = "#3b82f6";
+          link.style.textDecoration = "underline";
+          link.setAttribute("target", "_blank");
+          link.setAttribute("rel", "noopener noreferrer");
+        });
+        onChange(editorRef.current.innerHTML);
+      }
+    }
+  };
+
   return (
     <div className="border border-input rounded-md overflow-hidden">
       {/* Toolbar */}
@@ -128,6 +151,20 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
           title="Sublinhado"
         >
           <Underline className="h-4 w-4" />
+        </Button>
+
+        <div className="w-px h-6 bg-border mx-1" />
+
+        {/* Link */}
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={applyLink}
+          className="h-8 w-8 p-0"
+          title="Inserir link"
+        >
+          <Link2 className="h-4 w-4" />
         </Button>
 
         <div className="w-px h-6 bg-border mx-1" />
