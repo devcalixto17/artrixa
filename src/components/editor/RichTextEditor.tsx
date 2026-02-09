@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -47,6 +47,13 @@ const PRESET_COLORS = [
 export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const [customColor, setCustomColor] = useState("#000000");
+
+  // Sync internal content with external value
+  useEffect(() => {
+    if (editorRef.current && editorRef.current.innerHTML !== value) {
+      editorRef.current.innerHTML = value || "";
+    }
+  }, [value]);
 
   const execCommand = useCallback((command: string, value?: string) => {
     document.execCommand(command, false, value);

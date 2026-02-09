@@ -11,13 +11,13 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { 
-  Ban, 
-  VolumeX, 
-  LogOut, 
-  Search, 
-  Shield, 
-  Clock, 
+import {
+  Ban,
+  VolumeX,
+  LogOut,
+  Search,
+  Shield,
+  Clock,
   AlertTriangle,
   Check,
   X,
@@ -85,22 +85,22 @@ export const ModerationPanel = () => {
         .select("*")
         .eq("is_active", true)
         .order("applied_at", { ascending: false });
-      
+
       if (error) throw error;
-      
+
       // Fetch profiles for moderated users and moderators
       const userIds = [...new Set([
         ...data.map(m => m.user_id),
         ...data.map(m => m.applied_by)
       ])];
-      
+
       const { data: profiles } = await supabase
         .from("profiles")
         .select("user_id, username, avatar_url")
         .in("user_id", userIds);
-      
+
       const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
-      
+
       return data.map(m => ({
         ...m,
         profile: profileMap.get(m.user_id),
@@ -118,21 +118,21 @@ export const ModerationPanel = () => {
         .select("*")
         .order("applied_at", { ascending: false })
         .limit(50);
-      
+
       if (error) throw error;
-      
+
       const userIds = [...new Set([
         ...data.map(m => m.user_id),
         ...data.map(m => m.applied_by)
       ])];
-      
+
       const { data: profiles } = await supabase
         .from("profiles")
         .select("user_id, username, avatar_url")
         .in("user_id", userIds);
-      
+
       const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
-      
+
       return data.map(m => ({
         ...m,
         profile: profileMap.get(m.user_id),
@@ -150,11 +150,11 @@ export const ModerationPanel = () => {
       durationValue: string;
     }) => {
       if (!user) throw new Error("Not authenticated");
-      
+
       const durationOption = DURATION_OPTIONS.find(d => d.value === durationValue);
       const isPermanent = durationValue === "permanent";
       const expiresAt = isPermanent ? null : addHours(new Date(), durationOption?.hours || 1);
-      
+
       // For kick, we don't store duration
       const { error } = await supabase
         .from("user_moderations")
@@ -165,9 +165,9 @@ export const ModerationPanel = () => {
           applied_by: user.id,
           expires_at: type === "kick" ? null : expiresAt?.toISOString(),
           is_permanent: type === "kick" ? false : isPermanent,
-          is_active: type !== "kick", // Kicks are immediate and don't stay active
+          is_active: true, // All moderations (including kicks) start active
         });
-      
+
       if (error) throw error;
     },
     onSuccess: () => {
@@ -189,7 +189,7 @@ export const ModerationPanel = () => {
         .from("user_moderations")
         .update({ is_active: false })
         .eq("id", moderationId);
-      
+
       if (error) throw error;
     },
     onSuccess: () => {
@@ -206,9 +206,9 @@ export const ModerationPanel = () => {
   const filteredUsers = useMemo(() => {
     if (!users) return [];
     if (!searchQuery.trim()) return users;
-    
+
     const query = searchQuery.toLowerCase();
-    return users.filter(u => 
+    return users.filter(u =>
       u.username?.toLowerCase().includes(query) ||
       u.user_id.toLowerCase().includes(query)
     );
@@ -239,7 +239,7 @@ export const ModerationPanel = () => {
       toast.error("Selecione um usuário e informe o motivo.");
       return;
     }
-    
+
     applyModerationMutation.mutate({
       userId: selectedUserId,
       type: moderationType,
@@ -304,9 +304,8 @@ export const ModerationPanel = () => {
                           setSelectedUserId(u.user_id);
                           setSearchQuery("");
                         }}
-                        className={`w-full flex items-center gap-3 p-3 hover:bg-muted/50 transition-colors ${
-                          selectedUserId === u.user_id ? "bg-primary/10" : ""
-                        }`}
+                        className={`w-full flex items-center gap-3 p-3 hover:bg-muted/50 transition-colors ${selectedUserId === u.user_id ? "bg-primary/10" : ""
+                          }`}
                       >
                         <Avatar className="h-8 w-8">
                           <AvatarImage src={u.avatar_url || undefined} />
@@ -499,9 +498,8 @@ export const ModerationPanel = () => {
                   {moderationHistory?.map((mod) => (
                     <div
                       key={mod.id}
-                      className={`flex items-center gap-3 p-3 rounded-lg border ${
-                        mod.is_active ? "bg-muted/50" : "opacity-60"
-                      }`}
+                      className={`flex items-center gap-3 p-3 rounded-lg border ${mod.is_active ? "bg-muted/50" : "opacity-60"
+                        }`}
                     >
                       {getModerationIcon(mod.moderation_type)}
                       <Avatar className="h-6 w-6">
