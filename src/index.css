@@ -272,8 +272,22 @@
 .download-card-image {
   aspect-ratio: 16/10;
   min-height: 180px;
-  max-height: 220px;
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+@media (max-width: 1024px) {
+  .download-card-image {
+    aspect-ratio: 16/9;
+    min-height: 200px;
+  }
+}
+
+@media (max-width: 640px) {
+  .download-card-image {
+    aspect-ratio: 16/9;
+    min-height: 160px;
+  }
 }
 
 .download-card-content {
