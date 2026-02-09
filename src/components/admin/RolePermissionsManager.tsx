@@ -18,7 +18,8 @@ import {
   Users,
   FileText,
   Settings,
-  Sparkles
+  Sparkles,
+  Headphones
 } from "lucide-react";
 
 // Cargos do sistema (app_role)
@@ -37,6 +38,7 @@ const categoryIcons: Record<string, any> = {
   vip: Sparkles,
   users: Users,
   admin: Settings,
+  support: Headphones,
 };
 
 const categoryLabels: Record<string, string> = {
@@ -45,6 +47,7 @@ const categoryLabels: Record<string, string> = {
   vip: "VIP",
   users: "Usuários",
   admin: "Administração",
+  support: "Suporte",
 };
 
 export const RolePermissionsManager = () => {
