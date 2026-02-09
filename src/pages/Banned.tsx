@@ -81,9 +81,9 @@ export default function Banned() {
                   <span className="text-destructive font-semibold">Permanente</span>
                 ) : activeModeration.expires_at ? (
                   <>
-                    Expira {formatDistanceToNow(new Date(activeModeration.expires_at), { 
-                      locale: ptBR, 
-                      addSuffix: true 
+                    Expira {formatDistanceToNow(new Date(activeModeration.expires_at), {
+                      locale: ptBR,
+                      addSuffix: true
                     })}
                     <span className="text-muted-foreground text-sm ml-2">
                       ({format(new Date(activeModeration.expires_at), "dd/MM/yyyy HH:mm")})
@@ -113,8 +113,19 @@ export default function Banned() {
             </div>
           </div>
 
-          <div className="text-center text-sm text-muted-foreground">
-            Se você acredita que isso foi um erro, entre em contato com a administração.
+          <div className="text-center text-sm text-muted-foreground space-y-2">
+            <p>Se você acredita que isso foi um erro, entre em contato com a administração.</p>
+            <p>
+              Contato de Suporte:{" "}
+              <a
+                href="https://discord.com/users/817955924681293894"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline font-medium"
+              >
+                Discord
+              </a>
+            </p>
           </div>
 
           <Button
