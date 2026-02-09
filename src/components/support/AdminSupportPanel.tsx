@@ -307,7 +307,7 @@ export function AdminSupportPanel() {
                                p-4 rounded-2xl text-sm shadow-sm
                                ${isMe
                                                                 ? "bg-primary text-primary-foreground rounded-tr-none"
-                                                                : "bg-white dark:bg-card border rounded-tl-none"
+                                                                : "bg-black text-white rounded-tl-none"
                                                             }
                              `}
                                                     >

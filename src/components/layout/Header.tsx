@@ -22,6 +22,7 @@ export const Header = () => {
   const { user, isAdmin, isFundador, isStaff, signOut } = useAuth();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [skinsOpen, setSkinsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -148,8 +149,8 @@ export const Header = () => {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <span className="font-display text-2xl font-black text-primary neon-glow tracking-wider">CS1.6 </span>
-            <span className="font-display text-2xl font-black text-foreground tracking-wider">MODS </span>
+            <span className="font-display text-2xl font-black text-primary neon-glow tracking-wider">Butterfly </span>
+            <span className="font-display text-2xl font-black text-foreground tracking-wider">GM </span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -274,16 +275,40 @@ export const Header = () => {
       {mobileMenuOpen && (
         <div className="lg:hidden bg-background border-t border-border">
           <div className="px-4 py-2 space-y-1">
-            {navLinks.map((link) => (
-              <Link
-                key={link.path}
-                to={link.path}
-                className="block px-3 py-2 text-sm font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 rounded transition-colors tracking-wide uppercase"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {link.name}
-              </Link>
-            ))}
+            {navLinks.map((link) => {
+              if (link.name === "Skins") {
+                return (
+                  <div key={link.path} className="space-y-1">
+                    <button
+                      onClick={() => setSkinsOpen(!skinsOpen)}
+                      className="w-full flex items-center justify-between px-3 py-2 text-sm font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 rounded transition-colors tracking-wide uppercase"
+                    >
+                      {link.name}
+                      <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${skinsOpen ? "rotate-180" : ""}`} />
+                    </button>
+                    {skinsOpen && (
+                      <div className="pl-4 space-y-1 bg-secondary/10 rounded-md my-1">
+                        <Link to="/categoria/skins-armas" className="block px-3 py-2 text-sm font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 rounded transition-colors tracking-wide uppercase" onClick={() => setMobileMenuOpen(false)}>Skins de Armas</Link>
+                        <Link to="/categoria/skins-facas" className="block px-3 py-2 text-sm font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 rounded transition-colors tracking-wide uppercase" onClick={() => setMobileMenuOpen(false)}>Skins de Facas</Link>
+                        <Link to="/categoria/skins-player" className="block px-3 py-2 text-sm font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 rounded transition-colors tracking-wide uppercase" onClick={() => setMobileMenuOpen(false)}>Skins de Player</Link>
+                        <Link to="/categoria/skins-zombies" className="block px-3 py-2 text-sm font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 rounded transition-colors tracking-wide uppercase" onClick={() => setMobileMenuOpen(false)}>Skins de Zombies</Link>
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
+              return (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  className="block px-3 py-2 text-sm font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 rounded transition-colors tracking-wide uppercase"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {link.name}
+                </Link>
+              );
+            })}
 
             {user ? (
               <div className="pt-2 border-t border-border mt-2 space-y-2">
