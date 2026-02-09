@@ -34,11 +34,8 @@ export const BanChecker = ({ children }: { children: React.ReactNode }) => {
 
   const handleKickConfirmation = async () => {
     if (activeModeration) {
-      // Deactivate the kick so they can log back in
-      await supabase
-        .from("user_moderations")
-        .update({ is_active: false })
-        .eq("id", activeModeration.id);
+      // Deactivate the kick via RPC (bypasses RLS issues for the user)
+      await supabase.rpc('acknowledge_user_kick');
 
       // Close modal and sign out
       setShowKickModal(false);
