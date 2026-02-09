@@ -54,7 +54,7 @@ const iconMap: Record<string, React.ComponentType<any>> = {
 };
 
 const Admin = () => {
-  const { user, isFundador, isLoading: authLoading } = useAuth();
+  const { user, isFundador, isAdmin, isStaff, isLoading: authLoading } = useAuth();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -88,7 +88,7 @@ const Admin = () => {
           .map((ub) => ub.badges),
       }));
     },
-    enabled: !!user && isFundador,
+    enabled: !!user && (isFundador || isAdmin || isStaff),
   });
 
   const { data: badges } = useQuery({
@@ -98,7 +98,7 @@ const Admin = () => {
       if (error) throw error;
       return data;
     },
-    enabled: !!user && isFundador,
+    enabled: !!user && (isFundador || isAdmin || isStaff),
   });
 
   const { data: stats } = useQuery({
@@ -116,7 +116,7 @@ const Admin = () => {
         categories: categoriesRes.count || 0,
       };
     },
-    enabled: !!user && isFundador,
+    enabled: !!user && (isFundador || isAdmin || isStaff),
   });
 
   // Filtrar usuários com base na busca
@@ -205,7 +205,7 @@ const Admin = () => {
     );
   }
 
-  if (!user || !isFundador) {
+  if (!user || (!isFundador && !isAdmin && !isStaff)) {
     return <Navigate to="/" replace />;
   }
 
@@ -214,7 +214,9 @@ const Admin = () => {
       <div className="max-w-6xl mx-auto space-y-6">
         <div className="flex items-center gap-3">
           <Crown className="w-8 h-8 text-red-500" />
-          <h1 className="text-3xl font-display font-bold text-foreground"> Painel do Fundador </h1>
+          <h1 className="text-3xl font-display font-bold text-foreground">
+            {isFundador ? "Painel do Fundador" : isAdmin ? "Painel do Admin" : "Painel da Staff"}
+          </h1>
         </div>
 
         {/* Stats */}
@@ -255,16 +257,18 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="notifications" className="space-y-4">
-          <TabsList className="bg-muted flex-wrap">
+          <TabsList className="bg-muted flex-wrap h-auto gap-1 p-1">
             <TabsTrigger value="notifications" className="data-[state=active]:bg-background relative">
               <Bell className="w-4 h-4 mr-2" />
               Notificações
               <PendingBadge />
             </TabsTrigger>
-            <TabsTrigger value="users" className="data-[state=active]:bg-background">
-              <Users className="w-4 h-4 mr-2" />
-              Usuários
-            </TabsTrigger>
+            {(isFundador || isAdmin) && (
+              <TabsTrigger value="users" className="data-[state=active]:bg-background">
+                <Users className="w-4 h-4 mr-2" />
+                Usuários
+              </TabsTrigger>
+            )}
             <TabsTrigger value="sent-messages" className="data-[state=active]:bg-background">
               <Send className="w-4 h-4 mr-2" />
               Mensagens Enviadas
@@ -281,14 +285,18 @@ const Admin = () => {
               <MessageSquare className="w-4 h-4 mr-2" />
               Suporte
             </TabsTrigger>
-            <TabsTrigger value="permissions" className="data-[state=active]:bg-background">
-              <Shield className="w-4 h-4 mr-2" />
-              Permissões
-            </TabsTrigger>
-            <TabsTrigger value="custom-roles" className="data-[state=active]:bg-background">
-              <Crown className="w-4 h-4 mr-2" />
-              Cargos
-            </TabsTrigger>
+            {isFundador && (
+              <>
+                <TabsTrigger value="permissions" className="data-[state=active]:bg-background">
+                  <Shield className="w-4 h-4 mr-2" />
+                  Permissões
+                </TabsTrigger>
+                <TabsTrigger value="custom-roles" className="data-[state=active]:bg-background">
+                  <Crown className="w-4 h-4 mr-2" />
+                  Cargos
+                </TabsTrigger>
+              </>
+            )}
           </TabsList>
 
           <TabsContent value="notifications" className="space-y-4">

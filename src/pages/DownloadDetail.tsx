@@ -281,13 +281,13 @@ export default function DownloadDetail() {
             {/* Main Image */}
             {downloadData.image_url && (
               <div 
-                className="relative aspect-video rounded-lg overflow-hidden cursor-pointer"
+                className="relative w-full rounded-lg overflow-hidden cursor-pointer"
                 onClick={() => setSelectedImage(downloadData.image_url)}
               >
                 <img
                   src={downloadData.image_url}
                   alt={downloadData.title}
-                  className="w-full h-full object-cover hover:scale-105 transition-transform"
+                  className="w-full h-auto object-cover hover:scale-105 transition-transform rounded-lg"
                 />
               </div>
             )}
@@ -298,7 +298,7 @@ export default function DownloadDetail() {
                 <h2 className="text-xl font-semibold mb-4">Descrição</h2>
                 {downloadData.description ? (
                   <div 
-                    className="prose prose-sm max-w-none text-muted-foreground"
+                    className="prose prose-sm max-w-none text-muted-foreground [&_a]:text-blue-500 [&_a]:underline [&_a]:hover:text-blue-400"
                     dangerouslySetInnerHTML={{ __html: downloadData.description }}
                   />
                 ) : (
