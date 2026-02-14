@@ -116,17 +116,17 @@ export default function VipArea() {
     enabled: isVip,
   });
 
-  // Create Stripe checkout
+  // Create Mercado Pago checkout
   const createCheckoutMutation = useMutation({
     mutationFn: async () => {
       setIsProcessing(true);
-      const { data, error } = await supabase.functions.invoke("create-checkout");
+      const { data, error } = await supabase.functions.invoke("create-mercadopago-preference");
       if (error) throw error;
       return data;
     },
     onSuccess: (data) => {
       if (data.url) {
-        window.open(data.url, "_blank");
+        window.location.href = data.url;
       }
       setIsProcessing(false);
     },
@@ -583,7 +583,7 @@ export default function VipArea() {
               ) : (
                 <>
                   <p className="text-muted-foreground">
-                    Assine com cartão de crédito ou débito e tenha acesso imediato a todos os benefícios VIP.
+                    Pague com PIX, Boleto, Cartão de Crédito ou Débito e tenha acesso imediato a todos os benefícios VIP.
                   </p>
 
                   <Button
@@ -597,13 +597,13 @@ export default function VipArea() {
                     ) : (
                       <>
                         <CreditCard className="h-5 w-5 mr-2" />
-                        Assinar VIP Diamante
+                        ASSINAR VIP DIAMANTE
                       </>
                     )}
                   </Button>
 
                   <p className="text-xs text-center text-muted-foreground">
-                    Pagamento seguro processado pelo Stripe
+                    Pagamento seguro processado pelo Mercado Pago
                   </p>
                 </>
               )}
