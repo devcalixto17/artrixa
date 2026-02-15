@@ -10,7 +10,7 @@ const Index = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("downloads")
-        .select("*, categories(name), custom_submenus:submenu_id(name)")
+        .select("*, categories(name), custom_submenus:submenu_id(name), custom_pages:custom_page_id(title)")
         .eq("status", "approved")
         .order("created_at", { ascending: false })
         .limit(10);
@@ -65,7 +65,9 @@ const Index = () => {
                 imageUrl={download.image_url}
                 downloadCount={download.download_count || 0}
                 createdAt={download.created_at}
-                categoryName={download.categories?.name || (download as any).custom_submenus?.name}
+                categoryName={download.categories?.name ||
+                  (download as any).custom_submenus?.name ||
+                  (download as any).custom_pages?.title}
                 authorName={download.author?.username}
                 authorAvatar={download.author?.avatar_url}
                 authorUserId={download.author_id}

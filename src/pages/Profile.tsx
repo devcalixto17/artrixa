@@ -67,7 +67,7 @@ const Profile = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("downloads")
-        .select("*, categories(name), custom_submenus:submenu_id(name)")
+        .select("*, categories(name), custom_submenus:submenu_id(name), custom_pages:custom_page_id(title)")
         .eq("author_id", userId)
         .order("created_at", { ascending: false })
         .limit(5);
@@ -232,7 +232,9 @@ const Profile = () => {
                     imageUrl={download.image_url}
                     downloadCount={download.download_count || 0}
                     createdAt={download.created_at}
-                    categoryName={download.categories?.name || (download as any).custom_submenus?.name}
+                    categoryName={download.categories?.name ||
+                      (download as any).custom_submenus?.name ||
+                      (download as any).custom_pages?.title}
                     authorName={profile.username}
                     authorAvatar={profile.avatar_url}
                     authorUserId={profile.user_id}

@@ -51,6 +51,19 @@ export default function Downloads() {
     },
   });
 
+  const { data: customPages } = useQuery({
+    queryKey: ["custom_pages_all"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("custom_pages")
+        .select("*")
+        .eq("status", "published")
+        .order("title");
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const { data: downloads, isLoading } = useQuery({
     queryKey: ["downloads", selectedCategory, searchQuery],
     queryFn: async () => {
@@ -59,7 +72,8 @@ export default function Downloads() {
         .select(`
           *,
           categories(name, slug),
-          custom_submenus:submenu_id(name)
+          custom_submenus:submenu_id(name),
+          custom_pages:custom_page_id(title)
         `)
         .eq("status", "approved")
         .order("created_at", { ascending: false });
@@ -69,6 +83,8 @@ export default function Downloads() {
           query = query.eq("category_id", selectedCategory.replace("cat:", ""));
         } else if (selectedCategory.startsWith("sub:")) {
           query = query.eq("submenu_id", selectedCategory.replace("sub:", ""));
+        } else if (selectedCategory.startsWith("page:")) {
+          query = query.eq("custom_page_id", selectedCategory.replace("page:", ""));
         }
       }
 
@@ -180,6 +196,21 @@ export default function Downloads() {
                 </Button>
               );
             })}
+            {customPages?.map((page) => {
+              const val = `page:${page.id}`;
+              return (
+                <Button
+                  key={page.id}
+                  variant={selectedCategory === val ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedCategory(val)}
+                  className="gap-2 border-primary/30"
+                >
+                  <FileText className="h-4 w-4" />
+                  {page.title}
+                </Button>
+              );
+            })}
           </div>
         </div>
 
@@ -210,7 +241,7 @@ export default function Downloads() {
                 imageUrl={download.image_url}
                 downloadCount={download.download_count}
                 createdAt={download.created_at}
-                categoryName={download.categories?.name || (download.custom_submenus as any)?.name}
+                categoryName={download.categories?.name || (download.custom_submenus as any)?.name || (download.custom_pages as any)?.title}
                 authorName={download.author?.username}
                 authorAvatar={download.author?.avatar_url}
                 authorUserId={download.author_id}

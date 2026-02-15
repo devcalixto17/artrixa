@@ -33,6 +33,7 @@ export default function EditDownload() {
   const [commands, setCommands] = useState("");
   const [selectedCategoryId, setSelectedCategoryId] = useState("");
   const [selectedSubmenuId, setSelectedSubmenuId] = useState("");
+  const [selectedPageId, setSelectedPageId] = useState("");
   const [selectValue, setSelectValue] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [downloadType, setDownloadType] = useState<"link" | "file">("link");
@@ -71,11 +72,18 @@ export default function EditDownload() {
       if (download.category_id) {
         setSelectedCategoryId(download.category_id);
         setSelectedSubmenuId("");
+        setSelectedPageId("");
         setSelectValue(`cat:${download.category_id}`);
       } else if ((download as any).submenu_id) {
         setSelectedSubmenuId((download as any).submenu_id);
         setSelectedCategoryId("");
+        setSelectedPageId("");
         setSelectValue(`sub:${(download as any).submenu_id}`);
+      } else if ((download as any).custom_page_id) {
+        setSelectedPageId((download as any).custom_page_id);
+        setSelectedCategoryId("");
+        setSelectedSubmenuId("");
+        setSelectValue(`page:${(download as any).custom_page_id}`);
       }
 
       setImageUrl(download.image_url || "");
@@ -108,6 +116,19 @@ export default function EditDownload() {
         .from("custom_submenus")
         .select("*")
         .order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: customPages } = useQuery({
+    queryKey: ["custom_pages_all"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("custom_pages")
+        .select("*")
+        .eq("status", "published")
+        .order("title");
       if (error) throw error;
       return data;
     },
@@ -153,6 +174,7 @@ export default function EditDownload() {
           commands: commands || null,
           category_id: selectedCategoryId || null,
           submenu_id: selectedSubmenuId || null,
+          custom_page_id: selectedPageId || null,
           image_url: imageUrl || null,
           download_url: finalDownloadUrl || null,
           video_url: videoUrl || null,
@@ -218,10 +240,10 @@ export default function EditDownload() {
       return;
     }
 
-    if (!selectedCategoryId && !selectedSubmenuId) {
+    if (!selectedCategoryId && !selectedSubmenuId && !selectedPageId) {
       toast({
         title: "Erro",
-        description: "Selecione uma categoria ou submenu",
+        description: "Selecione uma categoria, submenu ou página",
         variant: "destructive",
       });
       return;
@@ -348,9 +370,15 @@ export default function EditDownload() {
                     if (val.startsWith("cat:")) {
                       setSelectedCategoryId(val.replace("cat:", ""));
                       setSelectedSubmenuId("");
+                      setSelectedPageId("");
                     } else if (val.startsWith("sub:")) {
                       setSelectedSubmenuId(val.replace("sub:", ""));
                       setSelectedCategoryId("");
+                      setSelectedPageId("");
+                    } else if (val.startsWith("page:")) {
+                      setSelectedPageId(val.replace("page:", ""));
+                      setSelectedCategoryId("");
+                      setSelectedSubmenuId("");
                     }
                   }}
                 >
@@ -378,6 +406,18 @@ export default function EditDownload() {
                         {submenus.map((sub) => (
                           <SelectItem key={sub.id} value={`sub:${sub.id}`}>
                             {sub.name}
+                          </SelectItem>
+                        ))}
+                      </>
+                    )}
+                    {customPages && customPages.length > 0 && (
+                      <>
+                        <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider mt-2 border-t border-border pt-2">
+                          Páginas Personalizadas
+                        </div>
+                        {customPages.map((page) => (
+                          <SelectItem key={page.id} value={`page:${page.id}`}>
+                            {page.title}
                           </SelectItem>
                         ))}
                       </>

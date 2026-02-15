@@ -95,12 +95,13 @@ const CustomPage = () => {
             if (pageData.type === 'submenu') {
                 query = query.eq("submenu_id", pageData.id);
             } else {
-                // For main pages, we try to match by category slug if exists
+                // Check if it's linked directly to this page
+                query = query.eq("custom_page_id", pageData.id);
+
+                // Also check if there's a category with the same slug (legacy support)
                 const { data: cat } = await supabase.from("categories").select("id").eq("slug", activeSlug).maybeSingle();
                 if (cat) {
-                    query = query.eq("category_id", cat.id);
-                } else {
-                    return [];
+                    query = query.or(`custom_page_id.eq.${pageData.id},category_id.eq.${cat.id}`);
                 }
             }
 

@@ -34,6 +34,7 @@ export default function CreateDownload() {
   const [commands, setCommands] = useState("");
   const [selectedCategoryId, setSelectedCategoryId] = useState("");
   const [selectedSubmenuId, setSelectedSubmenuId] = useState("");
+  const [selectedPageId, setSelectedPageId] = useState("");
   const [selectValue, setSelectValue] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [downloadType, setDownloadType] = useState<"link" | "file">("link");
@@ -63,6 +64,19 @@ export default function CreateDownload() {
         .from("custom_submenus")
         .select("*")
         .order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: customPages } = useQuery({
+    queryKey: ["custom_pages_all"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("custom_pages")
+        .select("*")
+        .eq("status", "published")
+        .order("title");
       if (error) throw error;
       return data;
     },
@@ -106,6 +120,7 @@ export default function CreateDownload() {
         commands: commands || null,
         category_id: selectedCategoryId || null,
         submenu_id: selectedSubmenuId || null,
+        custom_page_id: selectedPageId || null,
         image_url: imageUrl || null,
         download_url: finalDownloadUrl || null,
         video_url: videoUrl || null,
@@ -174,10 +189,10 @@ export default function CreateDownload() {
       return;
     }
 
-    if (!selectedCategoryId && !selectedSubmenuId) {
+    if (!selectedCategoryId && !selectedSubmenuId && !selectedPageId) {
       toast({
         title: "Erro",
-        description: "Selecione uma categoria ou submenu",
+        description: "Selecione uma categoria, submenu ou página",
         variant: "destructive",
       });
       return;
@@ -317,9 +332,15 @@ export default function CreateDownload() {
                     if (val.startsWith("cat:")) {
                       setSelectedCategoryId(val.replace("cat:", ""));
                       setSelectedSubmenuId("");
+                      setSelectedPageId("");
                     } else if (val.startsWith("sub:")) {
                       setSelectedSubmenuId(val.replace("sub:", ""));
                       setSelectedCategoryId("");
+                      setSelectedPageId("");
+                    } else if (val.startsWith("page:")) {
+                      setSelectedPageId(val.replace("page:", ""));
+                      setSelectedCategoryId("");
+                      setSelectedSubmenuId("");
                     }
                   }}
                 >
@@ -347,6 +368,18 @@ export default function CreateDownload() {
                         {submenus.map((sub) => (
                           <SelectItem key={sub.id} value={`sub:${sub.id}`}>
                             {sub.name}
+                          </SelectItem>
+                        ))}
+                      </>
+                    )}
+                    {customPages && customPages.length > 0 && (
+                      <>
+                        <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider mt-2 border-t border-border pt-2">
+                          Páginas Personalizadas
+                        </div>
+                        {customPages.map((page) => (
+                          <SelectItem key={page.id} value={`page:${page.id}`}>
+                            {page.title}
                           </SelectItem>
                         ))}
                       </>
