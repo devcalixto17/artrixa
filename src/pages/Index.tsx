@@ -10,31 +10,31 @@ const Index = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("downloads")
-        .select("*, categories(name)")
+        .select("*, categories(name), custom_submenus:submenu_id(name)")
         .eq("status", "approved")
         .order("created_at", { ascending: false })
         .limit(10);
       if (error) throw error;
-      
+
       // Fetch author profiles for each download
       if (data && data.length > 0) {
         const authorIds = [...new Set(data.map(d => d.author_id).filter(Boolean))];
-        
+
         if (authorIds.length > 0) {
           const { data: profiles } = await supabase
             .from("profiles")
             .select("user_id, username, avatar_url")
             .in("user_id", authorIds);
-          
+
           const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
-          
+
           return data.map(download => ({
             ...download,
             author: download.author_id ? profileMap.get(download.author_id) : null
           }));
         }
       }
-      
+
       return data?.map(d => ({ ...d, author: null })) || [];
     },
   });
@@ -42,12 +42,12 @@ const Index = () => {
   return (
     <Layout>
       <HeroSection />
-      
+
       <section>
         <h2 className="font-display text-2xl font-bold text-primary mb-6">
           Últimos Downloads
         </h2>
-        
+
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map((i) => (
@@ -65,7 +65,7 @@ const Index = () => {
                 imageUrl={download.image_url}
                 downloadCount={download.download_count || 0}
                 createdAt={download.created_at}
-                categoryName={download.categories?.name}
+                categoryName={download.categories?.name || (download as any).custom_submenus?.name}
                 authorName={download.author?.username}
                 authorAvatar={download.author?.avatar_url}
                 authorUserId={download.author_id}

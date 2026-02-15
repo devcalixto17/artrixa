@@ -33,7 +33,19 @@ export default function Downloads() {
         .from("categories")
         .select("*")
         .order("name");
-      
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: submenus } = useQuery({
+    queryKey: ["custom_submenus_all"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("custom_submenus")
+        .select("*")
+        .order("name");
       if (error) throw error;
       return data;
     },
@@ -46,23 +58,28 @@ export default function Downloads() {
         .from("downloads")
         .select(`
           *,
-          categories(name, slug)
+          categories(name, slug),
+          custom_submenus:submenu_id(name)
         `)
         .eq("status", "approved")
         .order("created_at", { ascending: false });
-      
+
       if (selectedCategory) {
-        query = query.eq("category_id", selectedCategory);
+        if (selectedCategory.startsWith("cat:")) {
+          query = query.eq("category_id", selectedCategory.replace("cat:", ""));
+        } else if (selectedCategory.startsWith("sub:")) {
+          query = query.eq("submenu_id", selectedCategory.replace("sub:", ""));
+        }
       }
-      
+
       if (searchQuery.trim()) {
         const fuzzy = `%${searchQuery.trim().split('').join('%')}%`;
         const simple = `%${searchQuery.trim().replace(/\s+/g, '%')}%`;
         query = query.or(`title.ilike.${simple},description.ilike.${simple},title.ilike.${fuzzy}`);
       }
-      
+
       const { data, error } = await query;
-      
+
       if (error) throw error;
       if (!data || data.length === 0) return [];
 
@@ -75,7 +92,7 @@ export default function Downloads() {
           .in("user_id", authorIds);
         profiles?.forEach(p => profileMap.set(p.user_id, p));
       }
-      
+
       return data.map(d => ({
         ...d,
         author: d.author_id ? profileMap.get(d.author_id) : null
@@ -112,7 +129,7 @@ export default function Downloads() {
             </Link>
           )}
         </div>
-        
+
         <div className="flex flex-col gap-4 mb-8">
           <form onSubmit={handleSearchSubmit} className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -123,7 +140,7 @@ export default function Downloads() {
               className="pl-10"
             />
           </form>
-          
+
           <div className="flex flex-wrap gap-2">
             <Button
               variant={selectedCategory === null ? "default" : "outline"}
@@ -134,12 +151,13 @@ export default function Downloads() {
             </Button>
             {categories?.map((category) => {
               const IconComponent = iconMap[category.icon || "Puzzle"] || Puzzle;
+              const val = `cat:${category.id}`;
               return (
                 <Button
                   key={category.id}
-                  variant={selectedCategory === category.id ? "default" : "outline"}
+                  variant={selectedCategory === val ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setSelectedCategory(category.id)}
+                  onClick={() => setSelectedCategory(val)}
                   className="gap-2"
                 >
                   <IconComponent className="h-4 w-4" />
@@ -147,9 +165,24 @@ export default function Downloads() {
                 </Button>
               );
             })}
+            {submenus?.map((sub) => {
+              const val = `sub:${sub.id}`;
+              return (
+                <Button
+                  key={sub.id}
+                  variant={selectedCategory === val ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedCategory(val)}
+                  className="gap-2 border-primary/30"
+                >
+                  <Settings className="h-4 w-4" />
+                  {sub.name}
+                </Button>
+              );
+            })}
           </div>
         </div>
-        
+
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(8)].map((_, i) => (
@@ -177,7 +210,7 @@ export default function Downloads() {
                 imageUrl={download.image_url}
                 downloadCount={download.download_count}
                 createdAt={download.created_at}
-                categoryName={download.categories?.name}
+                categoryName={download.categories?.name || (download.custom_submenus as any)?.name}
                 authorName={download.author?.username}
                 authorAvatar={download.author?.avatar_url}
                 authorUserId={download.author_id}

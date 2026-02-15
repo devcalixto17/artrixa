@@ -31,7 +31,9 @@ export default function EditDownload() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [commands, setCommands] = useState("");
-  const [categoryId, setCategoryId] = useState("");
+  const [selectedCategoryId, setSelectedCategoryId] = useState("");
+  const [selectedSubmenuId, setSelectedSubmenuId] = useState("");
+  const [selectValue, setSelectValue] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [downloadType, setDownloadType] = useState<"link" | "file">("link");
   const [downloadUrl, setDownloadUrl] = useState("");
@@ -65,7 +67,17 @@ export default function EditDownload() {
       setTitle(download.title);
       setDescription(download.description || "");
       setCommands(download.commands || "");
-      setCategoryId(download.category_id || "");
+
+      if (download.category_id) {
+        setSelectedCategoryId(download.category_id);
+        setSelectedSubmenuId("");
+        setSelectValue(`cat:${download.category_id}`);
+      } else if ((download as any).submenu_id) {
+        setSelectedSubmenuId((download as any).submenu_id);
+        setSelectedCategoryId("");
+        setSelectValue(`sub:${(download as any).submenu_id}`);
+      }
+
       setImageUrl(download.image_url || "");
       setDownloadUrl(download.download_url || "");
       setVideoUrl(download.video_url || "");
@@ -82,6 +94,18 @@ export default function EditDownload() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("categories")
+        .select("*")
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: submenus } = useQuery({
+    queryKey: ["custom_submenus_all"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("custom_submenus")
         .select("*")
         .order("name");
       if (error) throw error;
@@ -127,7 +151,8 @@ export default function EditDownload() {
           title,
           description,
           commands: commands || null,
-          category_id: categoryId || null,
+          category_id: selectedCategoryId || null,
+          submenu_id: selectedSubmenuId || null,
           image_url: imageUrl || null,
           download_url: finalDownloadUrl || null,
           video_url: videoUrl || null,
@@ -193,10 +218,10 @@ export default function EditDownload() {
       return;
     }
 
-    if (!categoryId) {
+    if (!selectedCategoryId && !selectedSubmenuId) {
       toast({
         title: "Erro",
-        description: "Selecione uma categoria",
+        description: "Selecione uma categoria ou submenu",
         variant: "destructive",
       });
       return;
@@ -316,16 +341,47 @@ export default function EditDownload() {
               {/* Category */}
               <div className="space-y-2">
                 <Label>Categoria *</Label>
-                <Select value={categoryId} onValueChange={setCategoryId}>
+                <Select
+                  value={selectValue}
+                  onValueChange={(val) => {
+                    setSelectValue(val);
+                    if (val.startsWith("cat:")) {
+                      setSelectedCategoryId(val.replace("cat:", ""));
+                      setSelectedSubmenuId("");
+                    } else if (val.startsWith("sub:")) {
+                      setSelectedSubmenuId(val.replace("sub:", ""));
+                      setSelectedCategoryId("");
+                    }
+                  }}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione uma categoria" />
                   </SelectTrigger>
                   <SelectContent>
-                    {categories?.map((category) => (
-                      <SelectItem key={category.id} value={category.id}>
-                        {category.name}
-                      </SelectItem>
-                    ))}
+                    {categories && categories.length > 0 && (
+                      <>
+                        <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                          Categorias Padrão
+                        </div>
+                        {categories.map((category) => (
+                          <SelectItem key={category.id} value={`cat:${category.id}`}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </>
+                    )}
+                    {submenus && submenus.length > 0 && (
+                      <>
+                        <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider mt-2 border-t border-border pt-2">
+                          Submenus Personalizados
+                        </div>
+                        {submenus.map((sub) => (
+                          <SelectItem key={sub.id} value={`sub:${sub.id}`}>
+                            {sub.name}
+                          </SelectItem>
+                        ))}
+                      </>
+                    )}
                   </SelectContent>
                 </Select>
               </div>

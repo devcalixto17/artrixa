@@ -50,7 +50,8 @@ export default function DownloadDetail() {
         .from("downloads")
         .select(`
           *,
-          categories(name, slug, icon)
+          categories(name, slug, icon),
+          custom_submenus:submenu_id(name)
         `)
         .eq("id", id)
         .maybeSingle();
@@ -267,8 +268,10 @@ export default function DownloadDetail() {
             {/* Title and Category */}
             <div>
               <div className="flex items-center gap-2 mb-2">
-                {downloadData.categories && (
-                  <Badge variant="secondary">{downloadData.categories.name}</Badge>
+                {(downloadData.categories || (downloadData as any).custom_submenus) && (
+                  <Badge variant="secondary">
+                    {downloadData.categories?.name || (downloadData as any).custom_submenus?.name}
+                  </Badge>
                 )}
                 {downloadData.status === "pending" && (
                   <Badge variant="outline" className="text-yellow-500 border-yellow-500">

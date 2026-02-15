@@ -67,7 +67,7 @@ const Profile = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("downloads")
-        .select("*, categories(name)")
+        .select("*, categories(name), custom_submenus:submenu_id(name)")
         .eq("author_id", userId)
         .order("created_at", { ascending: false })
         .limit(5);
@@ -142,8 +142,8 @@ const Profile = () => {
           <CardContent className="relative pt-0">
             <div className="flex flex-col sm:flex-row items-center gap-6 -mt-16">
               <Avatar className="w-28 h-28 border-4 border-card shadow-lg ring-2 ring-primary/20">
-                <AvatarImage 
-                  src={profile.avatar_url || undefined} 
+                <AvatarImage
+                  src={profile.avatar_url || undefined}
                   className="object-cover"
                 />
                 <AvatarFallback className="bg-primary/20 text-primary text-3xl font-bold">
@@ -155,9 +155,9 @@ const Profile = () => {
                 <h1 className="text-2xl font-display font-bold text-foreground">
                   {profile.username || "Usuário"}
                 </h1>
-                
+
                 <RoleBadge role={role} />
-                
+
                 <UserBadges userId={userId!} />
               </div>
 
@@ -232,7 +232,7 @@ const Profile = () => {
                     imageUrl={download.image_url}
                     downloadCount={download.download_count || 0}
                     createdAt={download.created_at}
-                    categoryName={download.categories?.name}
+                    categoryName={download.categories?.name || (download as any).custom_submenus?.name}
                     authorName={profile.username}
                     authorAvatar={profile.avatar_url}
                     authorUserId={profile.user_id}

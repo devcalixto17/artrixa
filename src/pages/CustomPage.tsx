@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Download, Eye } from "lucide-react";
 import { Link } from "react-router-dom";
+import { DownloadCard } from "@/components/cards/DownloadCard";
 
 const CustomPage = () => {
     const { slug, parentSlug, subSlug, grandParentSlug } = useParams();
@@ -73,6 +74,60 @@ const CustomPage = () => {
         },
     });
 
+    // Fetch related downloads if it's a submenu or page
+    const { data: relatedDownloads, isLoading: linkedDownloadsLoading } = useQuery({
+        queryKey: ["related-downloads", activeSlug, pageData?.id],
+        queryFn: async () => {
+            if (!pageData?.id) return [];
+
+            const field = pageData.type === 'submenu' ? 'submenu_id' : 'category_id';
+
+            // Note: If it's a page, we check if there's a category with the same slug
+            let query = supabase
+                .from("downloads")
+                .select(`
+                    *,
+                    categories(name)
+                `)
+                .eq("status", "approved")
+                .order("created_at", { ascending: false });
+
+            if (pageData.type === 'submenu') {
+                query = query.eq("submenu_id", pageData.id);
+            } else {
+                // For main pages, we try to match by category slug if exists
+                const { data: cat } = await supabase.from("categories").select("id").eq("slug", activeSlug).maybeSingle();
+                if (cat) {
+                    query = query.eq("category_id", cat.id);
+                } else {
+                    return [];
+                }
+            }
+
+            const { data, error } = await query;
+            if (error) throw error;
+            if (!data || data.length === 0) return [];
+
+            // Fetch profiles separately (proven pattern)
+            const authorIds = [...new Set(data.map(d => d.author_id).filter(Boolean))] as string[];
+            if (authorIds.length > 0) {
+                const { data: profiles } = await supabase
+                    .from("profiles")
+                    .select("user_id, username, avatar_url")
+                    .in("user_id", authorIds);
+
+                const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
+                return data.map(d => ({
+                    ...d,
+                    profiles: d.author_id ? profileMap.get(d.author_id) : null
+                }));
+            }
+
+            return data;
+        },
+        enabled: !!pageData?.id,
+    });
+
     if (isLoading) {
         return (
             <div className="min-h-screen bg-background flex flex-col">
@@ -109,6 +164,33 @@ const CustomPage = () => {
                             <div className="prose prose-invert max-w-none bg-secondary/20 p-6 rounded-xl border border-border/50">
                                 <div dangerouslySetInnerHTML={{ __html: content }} />
                             </div>
+
+                            {/* Related Downloads Section */}
+                            {relatedDownloads && relatedDownloads.length > 0 && (
+                                <div className="pt-8 border-t border-border/50">
+                                    <h2 className="text-2xl font-display font-bold text-foreground mb-6 flex items-center gap-2">
+                                        <Download className="w-6 h-6 text-primary" />
+                                        PUBLICAÇÕES NESTA CATEGORIA
+                                    </h2>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        {relatedDownloads.map((download: any) => (
+                                            <DownloadCard
+                                                key={download.id}
+                                                id={download.id}
+                                                title={download.title}
+                                                description={download.description}
+                                                imageUrl={download.image_url}
+                                                downloadCount={download.download_count}
+                                                createdAt={download.created_at}
+                                                categoryName={download.categories?.name || pageData.name}
+                                                authorName={download.profiles?.username}
+                                                authorAvatar={download.profiles?.avatar_url}
+                                                authorUserId={download.author_id}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
 
