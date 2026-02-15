@@ -6,7 +6,7 @@ import { DownloadCard } from "@/components/cards/DownloadCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Puzzle, User, Target, Wrench, Map, Settings, Plus } from "lucide-react";
+import { Search, Puzzle, User, Target, Wrench, Map as MapIcon, Settings, Plus, FileText } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -15,7 +15,7 @@ const iconMap: Record<string, React.ElementType> = {
   User,
   Target,
   Wrench,
-  Map,
+  Map: MapIcon,
   Settings,
 };
 
@@ -100,7 +100,7 @@ export default function Downloads() {
       if (!data || data.length === 0) return [];
 
       const authorIds = [...new Set(data.map(d => d.author_id).filter(Boolean))] as string[];
-      const profileMap = new window.Map<string, any>();
+      const profileMap = new Map<string, any>();
       if (authorIds.length > 0) {
         const { data: profiles } = await supabase
           .from("profiles")
@@ -196,7 +196,7 @@ export default function Downloads() {
                 </Button>
               );
             })}
-            {customPages?.map((page) => {
+            {customPages?.map((page: any) => {
               const val = `page:${page.id}`;
               return (
                 <Button
