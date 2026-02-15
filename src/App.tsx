@@ -25,6 +25,9 @@ const queryClient = new QueryClient();
 
 
 import { SupportWidget } from "@/components/support/SupportWidget";
+import { FounderGuard } from "@/components/auth/FounderGuard";
+import Fundador from "./pages/Fundador";
+import CustomPage from "./pages/CustomPage";
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -39,6 +42,11 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/admin" element={<Admin />} />
+              <Route path="/fundador" element={
+                <FounderGuard>
+                  <Fundador />
+                </FounderGuard>
+              } />
               <Route path="/profile/:userId" element={<Profile />} />
               <Route path="/downloads" element={<Downloads />} />
               <Route path="/download/:id" element={<DownloadDetail />} />
@@ -49,6 +57,11 @@ const App = () => (
               <Route path="/banned" element={<Banned />} />
               <Route path="/skins" element={<Skins />} />
               <Route path="/vip" element={<VipArea />} />
+
+              {/* Rotas Dinâmicas de Páginas e Submenus */}
+              <Route path="/p/:slug" element={<CustomPage />} />
+              <Route path="/p/:parentSlug/:subSlug" element={<CustomPage />} />
+
               <Route path="*" element={<NotFound />} />
             </Routes>
             <SupportWidget />

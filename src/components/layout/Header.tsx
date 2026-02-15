@@ -139,6 +139,34 @@ export const Header = () => {
     }
   };
 
+  const { data: dynamicPages } = useQuery({
+    queryKey: ["pinned-custom-pages"],
+    queryFn: async () => {
+      const { data: pages, error: pageError } = await supabase
+        .from("custom_pages")
+        .select("*")
+        .eq("is_pinned_header", true)
+        .eq("status", "published")
+        .order("display_order", { ascending: true });
+
+      if (pageError) throw pageError;
+      if (!pages) return [];
+
+      const { data: submenus, error: subError } = await supabase
+        .from("custom_submenus")
+        .select("*")
+        .in("parent_page_id", (pages as any[]).map(p => p.id))
+        .order("display_order", { ascending: true });
+
+      if (subError) throw subError;
+
+      return (pages as any[]).map(page => ({
+        ...page,
+        submenus: (submenus as any[])?.filter(s => s.parent_page_id === page.id) || []
+      }));
+    }
+  });
+
   const handleSignOut = async () => {
     await signOut();
     setMobileMenuOpen(false);
@@ -166,7 +194,6 @@ export const Header = () => {
                       <ChevronDown className="w-3 h-3 transition-transform duration-200 group-data-[state=open]:rotate-180" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="w-48 bg-background border-border">
-
                       <DropdownMenuItem onClick={() => navigate("/categoria/skins-armas")} className="cursor-pointer font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 uppercase tracking-wide">
                         Skins de Armas
                       </DropdownMenuItem>
@@ -191,6 +218,41 @@ export const Header = () => {
                   className="px-2 py-2 text-xs font-display font-bold text-muted-foreground hover:text-primary transition-colors tracking-wide uppercase"
                 >
                   {link.name}
+                </Link>
+              );
+            })}
+
+            {/* Dynamic Custom Pages */}
+            {dynamicPages?.map((page: any) => {
+              if (page.submenus && page.submenus.length > 0) {
+                return (
+                  <DropdownMenu key={page.id}>
+                    <DropdownMenuTrigger className="px-2 py-2 text-xs font-display font-bold text-muted-foreground hover:text-primary transition-colors tracking-wide uppercase outline-none flex items-center gap-1 group data-[state=open]:text-primary">
+                      {page.title}
+                      <ChevronDown className="w-3 h-3 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-48 bg-background border-border">
+                      {page.submenus.map((sub: any) => (
+                        <DropdownMenuItem
+                          key={sub.id}
+                          onClick={() => navigate(`/p/${page.slug}/${sub.slug}`)}
+                          className="cursor-pointer font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 uppercase tracking-wide"
+                        >
+                          {sub.name}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                );
+              }
+
+              return (
+                <Link
+                  key={page.id}
+                  to={`/p/${page.slug}`}
+                  className="px-2 py-2 text-xs font-display font-bold text-muted-foreground hover:text-primary transition-colors tracking-wide uppercase"
+                >
+                  {page.title}
                 </Link>
               );
             })}
@@ -306,6 +368,46 @@ export const Header = () => {
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {link.name}
+                </Link>
+              );
+            })}
+
+            {/* Dynamic Pages Mobile */}
+            {dynamicPages?.map((page: any) => {
+              if (page.submenus && page.submenus.length > 0) {
+                return (
+                  <div key={page.id} className="space-y-1">
+                    <button
+                      onClick={() => { /* Toggle state handled per menu if complex, simplified here */ }}
+                      className="w-full flex items-center justify-between px-3 py-2 text-sm font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 rounded transition-colors tracking-wide uppercase"
+                    >
+                      {page.title}
+                      <ChevronDown className="h-4 w-4" />
+                    </button>
+                    <div className="pl-4 space-y-1 bg-secondary/10 rounded-md my-1">
+                      {page.submenus.map((sub: any) => (
+                        <Link
+                          key={sub.id}
+                          to={`/p/${page.slug}/${sub.slug}`}
+                          className="block px-3 py-2 text-sm font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 rounded transition-colors tracking-wide uppercase"
+                          onClick={() => setMobileMenuOpen(false)}
+                        >
+                          {sub.name}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                );
+              }
+
+              return (
+                <Link
+                  key={page.id}
+                  to={`/p/${page.slug}`}
+                  className="block px-3 py-2 text-sm font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 rounded transition-colors tracking-wide uppercase"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {page.title}
                 </Link>
               );
             })}
@@ -441,6 +543,6 @@ export const Header = () => {
           ) : null}
         </DialogContent>
       </Dialog>
-    </header>
+    </header >
   );
 };
