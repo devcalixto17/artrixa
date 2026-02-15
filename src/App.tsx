@@ -58,9 +58,11 @@ const App = () => (
               <Route path="/skins" element={<Skins />} />
               <Route path="/vip" element={<VipArea />} />
 
+
               {/* Rotas Dinâmicas de Páginas e Submenus */}
-              <Route path="/p/:slug" element={<CustomPage />} />
-              <Route path="/p/:parentSlug/:subSlug" element={<CustomPage />} />
+              <Route path="/:slug" element={<CustomPage />} />
+              <Route path="/:parentSlug/:subSlug" element={<CustomPage />} />
+              <Route path="/:grandParentSlug/:parentSlug/:subSlug" element={<CustomPage />} />
 
               <Route path="*" element={<NotFound />} />
             </Routes>

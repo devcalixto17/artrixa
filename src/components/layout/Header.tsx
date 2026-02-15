@@ -16,27 +16,22 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
 
 export const Header = () => {
   const { user, isAdmin, isFundador, isStaff, signOut } = useAuth();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [skinsOpen, setSkinsOpen] = useState(false);
+  const [openSubmenus, setOpenSubmenus] = useState<Record<string, boolean>>({});
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const navLinks = [
-    { name: "Início", path: "/" },
-    { name: "Plugins", path: "/categoria/plugins" },
-    { name: "Skins", path: "/skins" },
-    { name: "Mods", path: "/categoria/mods" },
-    { name: "Downloads", path: "/downloads" },
-    { name: "Área VIP", path: "/vip" },
-  ];
 
   const performSearch = async (query: string) => {
     if (!query.trim()) return;
@@ -139,8 +134,8 @@ export const Header = () => {
     }
   };
 
-  const { data: dynamicPages } = useQuery({
-    queryKey: ["pinned-custom-pages"],
+  const { data: navigationItems } = useQuery({
+    queryKey: ["site-navigation"],
     queryFn: async () => {
       const { data: pages, error: pageError } = await supabase
         .from("custom_pages")
@@ -160,9 +155,19 @@ export const Header = () => {
 
       if (subError) throw subError;
 
+      // Organizador recursivo de submenus
+      const organizeSubmenus = (parentId: string, parentSubId: string | null = null): any[] => {
+        return (submenus as any[])
+          ?.filter(s => s.parent_page_id === parentId && s.parent_submenu_id === parentSubId)
+          .map(sub => ({
+            ...sub,
+            submenus: organizeSubmenus(parentId, sub.id)
+          })) || [];
+      };
+
       return (pages as any[]).map(page => ({
         ...page,
-        submenus: (submenus as any[])?.filter(s => s.parent_page_id === page.id) || []
+        submenus: organizeSubmenus(page.id)
       }));
     }
   });
@@ -182,49 +187,12 @@ export const Header = () => {
           </Link>
 
           {/* Desktop Navigation */}
-
-
           <nav className="hidden lg:flex items-center gap-1">
-            {navLinks.map((link) => {
-              if (link.name === "Skins") {
-                return (
-                  <DropdownMenu key={link.path}>
-                    <DropdownMenuTrigger className="px-2 py-2 text-xs font-display font-bold text-muted-foreground hover:text-primary transition-colors tracking-wide uppercase outline-none flex items-center gap-1 group data-[state=open]:text-primary">
-                      Skins
-                      <ChevronDown className="w-3 h-3 transition-transform duration-200 group-data-[state=open]:rotate-180" />
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-48 bg-background border-border">
-                      <DropdownMenuItem onClick={() => navigate("/categoria/skins-armas")} className="cursor-pointer font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 uppercase tracking-wide">
-                        Skins de Armas
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => navigate("/categoria/skins-facas")} className="cursor-pointer font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 uppercase tracking-wide">
-                        Skins de Facas
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => navigate("/categoria/skins-player")} className="cursor-pointer font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 uppercase tracking-wide">
-                        Skins de Player
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => navigate("/categoria/skins-zombies")} className="cursor-pointer font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 uppercase tracking-wide">
-                        Skins de Zombies
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                );
-              }
+            {navigationItems?.map((page: any) => {
+              const hasSubmenus = page.submenus && page.submenus.length > 0;
+              const path = page.system_path || `/${page.slug}`;
 
-              return (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  className="px-2 py-2 text-xs font-display font-bold text-muted-foreground hover:text-primary transition-colors tracking-wide uppercase"
-                >
-                  {link.name}
-                </Link>
-              );
-            })}
-
-            {/* Dynamic Custom Pages */}
-            {dynamicPages?.map((page: any) => {
-              if (page.submenus && page.submenus.length > 0) {
+              if (hasSubmenus) {
                 return (
                   <DropdownMenu key={page.id}>
                     <DropdownMenuTrigger className="px-2 py-2 text-xs font-display font-bold text-muted-foreground hover:text-primary transition-colors tracking-wide uppercase outline-none flex items-center gap-1 group data-[state=open]:text-primary">
@@ -232,15 +200,43 @@ export const Header = () => {
                       <ChevronDown className="w-3 h-3 transition-transform duration-200 group-data-[state=open]:rotate-180" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="w-48 bg-background border-border">
-                      {page.submenus.map((sub: any) => (
-                        <DropdownMenuItem
-                          key={sub.id}
-                          onClick={() => navigate(`/p/${page.slug}/${sub.slug}`)}
-                          className="cursor-pointer font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 uppercase tracking-wide"
-                        >
-                          {sub.name}
-                        </DropdownMenuItem>
-                      ))}
+                      {page.submenus.map((sub: any) => {
+                        const hasNested = sub.submenus && sub.submenus.length > 0;
+                        const subPath = page.slug === 'skins'
+                          ? `/categoria/${sub.slug}`
+                          : `/${page.slug}/${sub.slug}`;
+
+                        if (hasNested) {
+                          return (
+                            <DropdownMenuSub key={sub.id}>
+                              <DropdownMenuSubTrigger className="cursor-pointer font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 uppercase tracking-wide">
+                                {sub.name}
+                              </DropdownMenuSubTrigger>
+                              <DropdownMenuSubContent className="bg-background border-border">
+                                {sub.submenus.map((nested: any) => (
+                                  <DropdownMenuItem
+                                    key={nested.id}
+                                    onClick={() => navigate(`/${page.slug}/${sub.slug}/${nested.slug}`)}
+                                    className="cursor-pointer font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 uppercase tracking-wide"
+                                  >
+                                    {nested.name}
+                                  </DropdownMenuItem>
+                                ))}
+                              </DropdownMenuSubContent>
+                            </DropdownMenuSub>
+                          );
+                        }
+
+                        return (
+                          <DropdownMenuItem
+                            key={sub.id}
+                            onClick={() => navigate(subPath)}
+                            className="cursor-pointer font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 uppercase tracking-wide"
+                          >
+                            {sub.name}
+                          </DropdownMenuItem>
+                        );
+                      })}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 );
@@ -249,7 +245,7 @@ export const Header = () => {
               return (
                 <Link
                   key={page.id}
-                  to={`/p/${page.slug}`}
+                  to={path}
                   className="px-2 py-2 text-xs font-display font-bold text-muted-foreground hover:text-primary transition-colors tracking-wide uppercase"
                 >
                   {page.title}
@@ -336,24 +332,30 @@ export const Header = () => {
       {/* Mobile Navigation Menu */}
       {mobileMenuOpen && (
         <div className="lg:hidden bg-background border-t border-border">
-          <div className="px-4 py-2 space-y-1">
-            {navLinks.map((link) => {
-              if (link.name === "Skins") {
+          {navigationItems?.map((page: any) => {
+            const hasSubmenus = page.submenus && page.submenus.length > 0;
+            const path = page.system_path || `/${page.slug}`;
+
+            const renderMobileItem = (item: any, depth = 0, currentAccumulatedPath = "") => {
+              const hasSubs = item.submenus && item.submenus.length > 0;
+              const isOpen = openSubmenus[item.id] || false;
+              const toggleOpen = () => setOpenSubmenus(prev => ({ ...prev, [item.id]: !prev[item.id] }));
+
+              const itemPath = item.system_path || (depth === 0 ? `/${item.slug}` : `${currentAccumulatedPath}/${item.slug}`);
+
+              if (hasSubs) {
                 return (
-                  <div key={link.path} className="space-y-1">
+                  <div key={item.id} className="space-y-1">
                     <button
-                      onClick={() => setSkinsOpen(!skinsOpen)}
-                      className="w-full flex items-center justify-between px-3 py-2 text-sm font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 rounded transition-colors tracking-wide uppercase"
+                      onClick={toggleOpen}
+                      className={`w-full flex items-center justify-between px-3 py-2 text-sm font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 rounded transition-colors tracking-wide uppercase ${depth > 0 ? 'pl-6' : ''}`}
                     >
-                      {link.name}
-                      <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${skinsOpen ? "rotate-180" : ""}`} />
+                      {item.title || item.name}
+                      <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`} />
                     </button>
-                    {skinsOpen && (
-                      <div className="pl-4 space-y-1 bg-secondary/10 rounded-md my-1">
-                        <Link to="/categoria/skins-armas" className="block px-3 py-2 text-sm font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 rounded transition-colors tracking-wide uppercase" onClick={() => setMobileMenuOpen(false)}>Skins de Armas</Link>
-                        <Link to="/categoria/skins-facas" className="block px-3 py-2 text-sm font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 rounded transition-colors tracking-wide uppercase" onClick={() => setMobileMenuOpen(false)}>Skins de Facas</Link>
-                        <Link to="/categoria/skins-player" className="block px-3 py-2 text-sm font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 rounded transition-colors tracking-wide uppercase" onClick={() => setMobileMenuOpen(false)}>Skins de Player</Link>
-                        <Link to="/categoria/skins-zombies" className="block px-3 py-2 text-sm font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 rounded transition-colors tracking-wide uppercase" onClick={() => setMobileMenuOpen(false)}>Skins de Zombies</Link>
+                    {isOpen && (
+                      <div className={`space-y-1 ${depth === 0 ? 'bg-secondary/10' : ''} rounded-md my-1`}>
+                        {item.submenus.map((sub: any) => renderMobileItem(sub, depth + 1, itemPath))}
                       </div>
                     )}
                   </div>
@@ -362,128 +364,90 @@ export const Header = () => {
 
               return (
                 <Link
-                  key={link.path}
-                  to={link.path}
-                  className="block px-3 py-2 text-sm font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 rounded transition-colors tracking-wide uppercase"
+                  key={item.id}
+                  to={item.slug === 'skins' ? `/categoria/${item.slug}` : itemPath}
+                  className={`block px-3 py-2 text-sm font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 rounded transition-colors tracking-wide uppercase ${depth > 0 ? 'pl-8' : ''}`}
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  {link.name}
+                  {item.title || item.name}
                 </Link>
               );
-            })}
+            };
 
-            {/* Dynamic Pages Mobile */}
-            {dynamicPages?.map((page: any) => {
-              if (page.submenus && page.submenus.length > 0) {
-                return (
-                  <div key={page.id} className="space-y-1">
-                    <button
-                      onClick={() => { /* Toggle state handled per menu if complex, simplified here */ }}
-                      className="w-full flex items-center justify-between px-3 py-2 text-sm font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 rounded transition-colors tracking-wide uppercase"
-                    >
-                      {page.title}
-                      <ChevronDown className="h-4 w-4" />
-                    </button>
-                    <div className="pl-4 space-y-1 bg-secondary/10 rounded-md my-1">
-                      {page.submenus.map((sub: any) => (
-                        <Link
-                          key={sub.id}
-                          to={`/p/${page.slug}/${sub.slug}`}
-                          className="block px-3 py-2 text-sm font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 rounded transition-colors tracking-wide uppercase"
-                          onClick={() => setMobileMenuOpen(false)}
-                        >
-                          {sub.name}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                );
-              }
+            return renderMobileItem(page);
+          })}
 
-              return (
-                <Link
-                  key={page.id}
-                  to={`/p/${page.slug}`}
-                  className="block px-3 py-2 text-sm font-display font-bold text-muted-foreground hover:text-primary hover:bg-secondary/50 rounded transition-colors tracking-wide uppercase"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {page.title}
-                </Link>
-              );
-            })}
-
-            {user ? (
-              <div className="pt-2 border-t border-border mt-2 space-y-2">
-                <Button
-                  variant="neon"
-                  size="sm"
-                  className="w-full justify-start"
-                  onClick={() => {
-                    navigate("/downloads/new");
-                    setMobileMenuOpen(false);
-                  }}
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Publicar
-                </Button>
+          {user ? (
+            <div className="pt-2 border-t border-border mt-2 space-y-2">
+              <Button
+                variant="neon"
+                size="sm"
+                className="w-full justify-start"
+                onClick={() => {
+                  navigate("/downloads/new");
+                  setMobileMenuOpen(false);
+                }}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Publicar
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full justify-start"
+                onClick={() => {
+                  navigate(`/profile/${user.id}`);
+                  setMobileMenuOpen(false);
+                }}
+              >
+                <User className="w-4 h-4 mr-2" />
+                Perfil
+              </Button>
+              {(isAdmin || isFundador || isStaff) && (
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="w-full justify-start"
+                  className="w-full justify-start relative"
                   onClick={() => {
-                    navigate(`/profile/${user.id}`);
+                    navigate("/admin");
                     setMobileMenuOpen(false);
                   }}
                 >
-                  <User className="w-4 h-4 mr-2" />
-                  Perfil
+                  <Shield className="w-4 h-4 mr-2" />
+                  {isFundador ? "Fundador" : isAdmin ? "Admin" : "Painel"}
+                  {pendingCount && pendingCount > 0 && (
+                    <span className="absolute -top-1 -right-2 bg-destructive text-destructive-foreground text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                      {pendingCount > 9 ? "9+" : pendingCount}
+                    </span>
+                  )}
                 </Button>
-                {(isAdmin || isFundador || isStaff) && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full justify-start relative"
-                    onClick={() => {
-                      navigate("/admin");
-                      setMobileMenuOpen(false);
-                    }}
-                  >
-                    <Shield className="w-4 h-4 mr-2" />
-                    {isFundador ? "Fundador" : isAdmin ? "Admin" : "Painel"}
-                    {pendingCount && pendingCount > 0 && (
-                      <span className="absolute -top-1 -right-2 bg-destructive text-destructive-foreground text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                        {pendingCount > 9 ? "9+" : pendingCount}
-                      </span>
-                    )}
-                  </Button>
-                )}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="w-full justify-start text-destructive hover:text-destructive"
-                  onClick={handleSignOut}
-                >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Sair
-                </Button>
-              </div>
-            ) : (
-              <div className="pt-2 border-t border-border mt-2">
-                <Button
-                  variant="neon"
-                  size="sm"
-                  className="w-full justify-start"
-                  onClick={() => {
-                    navigate("/auth");
-                    setMobileMenuOpen(false);
-                  }}
-                >
-                  <User className="w-4 h-4 mr-2" />
-                  Entrar
-                </Button>
-              </div>
-            )}
-          </div>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full justify-start text-destructive hover:text-destructive"
+                onClick={handleSignOut}
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Sair
+              </Button>
+            </div>
+          ) : (
+            <div className="pt-2 border-t border-border mt-2">
+              <Button
+                variant="neon"
+                size="sm"
+                className="w-full justify-start"
+                onClick={() => {
+                  navigate("/auth");
+                  setMobileMenuOpen(false);
+                }}
+              >
+                <User className="w-4 h-4 mr-2" />
+                Entrar
+              </Button>
+            </div>
+          )}
         </div>
       )}
 

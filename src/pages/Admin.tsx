@@ -1,6 +1,6 @@
 import { Layout } from "@/components/layout/Layout";
 import { useAuth } from "@/hooks/useAuth";
-import { Navigate, Link } from "react-router-dom";
+import { Navigate, Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -55,6 +55,7 @@ const iconMap: Record<string, React.ComponentType<any>> = {
 
 const Admin = () => {
   const { user, isFundador, isAdmin, isStaff, isLoading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -212,6 +213,21 @@ const Admin = () => {
   return (
     <Layout showSidebar={false}>
       <div className="max-w-6xl mx-auto space-y-6">
+        {isFundador && (
+          <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Shield className="w-5 h-5 text-primary" />
+              <div>
+                <p className="text-sm font-bold text-foreground">Gerenciamento Avançado</p>
+                <p className="text-xs text-muted-foreground">Acesse o painel de gerenciamento de páginas e navegação.</p>
+              </div>
+            </div>
+            <Button variant="neon" size="sm" onClick={() => navigate("/fundador")} className="gap-2">
+              MANAGER
+            </Button>
+          </div>
+        )}
+
         <div className="flex items-center gap-3">
           <Crown className="w-8 h-8 text-red-500" />
           <h1 className="text-3xl font-display font-bold text-foreground">

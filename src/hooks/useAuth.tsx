@@ -27,34 +27,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const lastCheckedUserId = useRef<string | null>(null);
+  const roleCheckPromise = useRef<Promise<void> | null>(null);
 
   const checkRoles = useCallback(async (userId: string) => {
-    // Prevent duplicate checks for the same user
-    if (lastCheckedUserId.current === userId) return;
+    // If already checking or checked this user, return the same promise
+    if (lastCheckedUserId.current === userId && roleCheckPromise.current) {
+      return roleCheckPromise.current;
+    }
+
     lastCheckedUserId.current = userId;
+    roleCheckPromise.current = (async () => {
+      try {
+        const { data, error } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", userId)
+          .maybeSingle();
 
-    try {
-      const { data, error } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId)
-        .maybeSingle();
-
-      if (!error && data) {
-        setIsAdmin(data.role === "admin" || data.role === "fundador");
-        setIsFundador(data.role === "fundador");
-        setIsStaff(data.role === "staff");
-      } else {
+        if (!error && data) {
+          setIsAdmin(data.role === "admin" || data.role === "fundador");
+          setIsFundador(data.role === "fundador");
+          setIsStaff(data.role === "staff");
+        } else {
+          setIsAdmin(false);
+          setIsFundador(false);
+          setIsStaff(false);
+        }
+      } catch (err) {
+        console.error("Error checking roles:", err);
         setIsAdmin(false);
         setIsFundador(false);
         setIsStaff(false);
       }
-    } catch (err) {
-      console.error("Error checking roles:", err);
-      setIsAdmin(false);
-      setIsFundador(false);
-      setIsStaff(false);
-    }
+    })();
+
+    return roleCheckPromise.current;
   }, []);
 
   useEffect(() => {
@@ -66,9 +73,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        checkRoles(session.user.id);
+        checkRoles(session.user.id).finally(() => {
+          if (mounted) setIsLoading(false);
+        });
+      } else {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     });
 
     // Set up auth state listener

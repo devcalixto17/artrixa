@@ -19,6 +19,7 @@ export const SubmenuForm = ({ isOpen, onClose, initialData, pages }: SubmenuForm
     const [name, setName] = useState("");
     const [slug, setSlug] = useState("");
     const [parentId, setParentId] = useState("");
+    const [parentSubmenuId, setParentSubmenuId] = useState<string | null>(null);
     const [displayOrder, setDisplayOrder] = useState("0");
     const queryClient = useQueryClient();
 
@@ -27,11 +28,13 @@ export const SubmenuForm = ({ isOpen, onClose, initialData, pages }: SubmenuForm
             setName(initialData.name || "");
             setSlug(initialData.slug || "");
             setParentId(initialData.parent_page_id || "");
+            setParentSubmenuId(initialData.parent_submenu_id || null);
             setDisplayOrder(String(initialData.display_order || "0"));
         } else {
             setName("");
             setSlug("");
             setParentId("");
+            setParentSubmenuId(null);
             setDisplayOrder("0");
         }
     }, [initialData, isOpen]);
@@ -74,6 +77,7 @@ export const SubmenuForm = ({ isOpen, onClose, initialData, pages }: SubmenuForm
             name,
             slug: formattedSlug,
             parent_page_id: parentId,
+            parent_submenu_id: parentSubmenuId,
             display_order: parseInt(displayOrder) || 0,
         });
     };
@@ -97,7 +101,10 @@ export const SubmenuForm = ({ isOpen, onClose, initialData, pages }: SubmenuForm
                 <form onSubmit={handleSubmit} className="space-y-6 py-4">
                     <div className="grid gap-2">
                         <Label htmlFor="parent">Página Principal (Pai)</Label>
-                        <Select value={parentId} onValueChange={setParentId}>
+                        <Select value={parentId} onValueChange={(val) => {
+                            setParentId(val);
+                            setParentSubmenuId(null); // Reset submenu when page changes
+                        }}>
                             <SelectTrigger id="parent">
                                 <SelectValue placeholder="Selecione a página" />
                             </SelectTrigger>
@@ -109,6 +116,27 @@ export const SubmenuForm = ({ isOpen, onClose, initialData, pages }: SubmenuForm
                                 ))}
                             </SelectContent>
                         </Select>
+                    </div>
+
+                    <div className="grid gap-2">
+                        <Label htmlFor="parentSub">Submenu Superior (Opcional)</Label>
+                        <Select value={parentSubmenuId || "none"} onValueChange={(val) => setParentSubmenuId(val === "none" ? null : val)}>
+                            <SelectTrigger id="parentSub">
+                                <SelectValue placeholder="Nível Direto da Página" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="none">Nível Direto da Página</SelectItem>
+                                {queryClient.getQueryData<any[]>(["custom-submenus"])
+                                    ?.filter(s => s.parent_page_id === parentId && s.id !== initialData?.id && !s.parent_submenu_id)
+                                    .map((sub) => (
+                                        <SelectItem key={sub.id} value={sub.id}>
+                                            {sub.name}
+                                        </SelectItem>
+                                    ))
+                                }
+                            </SelectContent>
+                        </Select>
+                        <p className="text-[10px] text-muted-foreground italic">Deixe vazio para o primeiro nível de submenu.</p>
                     </div>
 
                     <div className="grid gap-2">

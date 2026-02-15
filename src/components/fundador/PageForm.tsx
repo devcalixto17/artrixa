@@ -124,15 +124,21 @@ export const PageForm = ({ isOpen, onClose, initialData }: PageFormProps) => {
                     <div className="grid gap-2">
                         <Label htmlFor="slug">Slug (URL personalizada)</Label>
                         <div className="flex items-center gap-2">
-                            <span className="text-muted-foreground bg-secondary px-2 py-1.5 rounded text-sm">/p/</span>
+                            <span className="text-muted-foreground bg-secondary px-2 py-1.5 rounded text-sm">
+                                {"/"}
+                            </span>
                             <Input
                                 id="slug"
                                 placeholder="sobre-nos"
-                                value={slug}
+                                value={initialData?.is_system ? (initialData.system_path || initialData.slug) : slug}
                                 onChange={(e) => setSlug(e.target.value)}
+                                disabled={initialData?.is_system}
                                 required
                             />
                         </div>
+                        {initialData?.is_system && (
+                            <p className="text-[10px] text-primary font-bold uppercase">Esta é uma página de sistema. A URL não pode ser alterada.</p>
+                        )}
                     </div>
 
                     <div className="grid gap-2">

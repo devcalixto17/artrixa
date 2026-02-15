@@ -25,7 +25,7 @@ const Fundador = () => {
             const { data, error } = await supabase
                 .from("custom_pages")
                 .select("*")
-                .order("created_at", { ascending: false });
+                .order("display_order", { ascending: true });
             if (error) throw error;
             return data as any[];
         },
@@ -38,10 +38,10 @@ const Fundador = () => {
             const { data, error } = await supabase
                 .from("custom_submenus")
                 .select(`
-          *,
-          parent:custom_pages(title)
-        `)
-                .order("created_at", { ascending: false });
+                    *,
+                    parent:custom_pages(title)
+                `)
+                .order("display_order", { ascending: true });
             if (error) throw error;
             return data as any[];
         },
@@ -122,8 +122,15 @@ const Fundador = () => {
                                         <div className="flex items-center gap-3">
                                             <div className={`w-2 h-2 rounded-full ${page.status === 'published' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-yellow-500'}`} />
                                             <div>
-                                                <h3 className="font-bold text-foreground">{page.title}</h3>
-                                                <p className="text-xs text-muted-foreground">URL: /p/{page.slug}</p>
+                                                <div className="flex items-center gap-2">
+                                                    <h3 className="font-bold text-foreground">{page.title}</h3>
+                                                    {page.is_system && (
+                                                        <span className="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">Sistema</span>
+                                                    )}
+                                                </div>
+                                                <p className="text-xs text-muted-foreground">
+                                                    URL: {page.system_path || `/${page.slug}`}
+                                                </p>
                                             </div>
                                             {page.is_pinned_header && (
                                                 <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border border-primary/30">
@@ -134,14 +141,21 @@ const Fundador = () => {
 
                                         <div className="flex items-center gap-2">
                                             <Button variant="ghost" size="sm" asChild>
-                                                <a href={`/p/${page.slug}`} target="_blank" rel="noreferrer">
+                                                <a href={`/${page.slug}`} target="_blank" rel="noreferrer">
                                                     <ExternalLink className="w-4 h-4" />
                                                 </a>
                                             </Button>
                                             <Button variant="ghost" size="sm" onClick={() => { setEditingPage(page); setIsPageFormOpen(true); }}>
                                                 <Edit className="w-4 h-4" />
                                             </Button>
-                                            <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => deletePageMutation.mutate(page.id)}>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                                onClick={() => deletePageMutation.mutate(page.id)}
+                                                disabled={page.is_system}
+                                                title={page.is_system ? "Páginas de sistema não podem ser excluídas" : "Excluir"}
+                                            >
                                                 <Trash2 className="w-4 h-4" />
                                             </Button>
                                         </div>
@@ -176,7 +190,10 @@ const Fundador = () => {
                                             <div>
                                                 <h3 className="font-bold text-foreground">{sub.name}</h3>
                                                 <p className="text-xs text-muted-foreground">
-                                                    Vinculado a: <span className="text-primary font-medium">{sub.parent?.title}</span>
+                                                    Pai: <span className="text-primary font-medium">{sub.parent?.title || "Nenhum"}</span>
+                                                    {sub.parent_submenu_id && (
+                                                        <> | Submenu de: <span className="text-primary font-medium">{submenus?.find(s => s.id === sub.parent_submenu_id)?.name}</span></>
+                                                    )}
                                                 </p>
                                             </div>
                                         </div>

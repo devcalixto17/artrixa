@@ -11,11 +11,11 @@ import { Download, Eye } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const CustomPage = () => {
-    const { slug, parentSlug, subSlug } = useParams();
+    const { slug, parentSlug, subSlug, grandParentSlug } = useParams();
 
     // Resolve which slug to use for the query
-    // If it's a submenu, subSlug will be present
-    const activeSlug = subSlug || slug;
+    // The active slug is always the last segment of our dynamic routes
+    const activeSlug = subSlug || slug || parentSlug;
 
     const { data: pageData, isLoading, error } = useQuery({
         queryKey: ["custom-page", activeSlug],
