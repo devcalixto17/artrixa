@@ -47,12 +47,12 @@ export const PageForm = ({ isOpen, onClose, initialData }: PageFormProps) => {
         mutationFn: async (data: any) => {
             if (initialData?.id) {
                 const { error } = await supabase
-                    .from("custom_pages")
+                    .from("custom_pages" as any)
                     .update(data)
                     .eq("id", initialData.id);
                 if (error) throw error;
             } else {
-                const { error } = await supabase.from("custom_pages").insert(data);
+                const { error } = await supabase.from("custom_pages" as any).insert(data);
                 if (error) throw error;
             }
         },

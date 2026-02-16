@@ -3,6 +3,8 @@ import { HeroSection } from "@/components/home/HeroSection";
 import { DownloadCard } from "@/components/cards/DownloadCard";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { usePagination } from "@/hooks/usePagination";
+import { PaginationControls } from "@/components/PaginationControls";
 
 const Index = () => {
   const { data: downloads, isLoading } = useQuery({
@@ -12,11 +14,9 @@ const Index = () => {
         .from("downloads")
         .select("*, categories(name), custom_submenus:submenu_id(name), custom_pages:custom_page_id(title)")
         .eq("status", "approved")
-        .order("created_at", { ascending: false })
-        .limit(10);
+        .order("created_at", { ascending: false });
       if (error) throw error;
 
-      // Fetch author profiles for each download
       if (data && data.length > 0) {
         const authorIds = [...new Set(data.map(d => d.author_id).filter(Boolean))];
 
@@ -39,6 +39,8 @@ const Index = () => {
     },
   });
 
+  const { currentPage, totalPages, paginatedItems, goToPage } = usePagination(downloads);
+
   return (
     <Layout>
       <HeroSection />
@@ -55,25 +57,28 @@ const Index = () => {
             ))}
           </div>
         ) : downloads && downloads.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {downloads.map((download) => (
-              <DownloadCard
-                key={download.id}
-                id={download.id}
-                title={download.title}
-                description={download.description}
-                imageUrl={download.image_url}
-                downloadCount={download.download_count || 0}
-                createdAt={download.created_at}
-                categoryName={download.categories?.name ||
-                  (download as any).custom_submenus?.name ||
-                  (download as any).custom_pages?.title}
-                authorName={download.author?.username}
-                authorAvatar={download.author?.avatar_url}
-                authorUserId={download.author_id}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {paginatedItems.map((download: any) => (
+                <DownloadCard
+                  key={download.id}
+                  id={download.id}
+                  title={download.title}
+                  description={download.description}
+                  imageUrl={download.image_url}
+                  downloadCount={download.download_count || 0}
+                  createdAt={download.created_at}
+                  categoryName={download.categories?.name ||
+                    download.custom_submenus?.name ||
+                    download.custom_pages?.title}
+                  authorName={download.author?.username}
+                  authorAvatar={download.author?.avatar_url}
+                  authorUserId={download.author_id}
+                />
+              ))}
+            </div>
+            <PaginationControls currentPage={currentPage} totalPages={totalPages} onPageChange={goToPage} />
+          </>
         ) : (
           <div className="text-center py-12 bg-card rounded-lg border border-border">
             <p className="text-muted-foreground">Nenhum download disponível ainda.</p>

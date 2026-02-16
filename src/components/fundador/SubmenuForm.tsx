@@ -43,12 +43,12 @@ export const SubmenuForm = ({ isOpen, onClose, initialData, pages }: SubmenuForm
         mutationFn: async (data: any) => {
             if (initialData?.id) {
                 const { error } = await supabase
-                    .from("custom_submenus")
+                    .from("custom_submenus" as any)
                     .update(data)
                     .eq("id", initialData.id);
                 if (error) throw error;
             } else {
-                const { error } = await supabase.from("custom_submenus").insert(data);
+                const { error } = await supabase.from("custom_submenus" as any).insert(data);
                 if (error) throw error;
             }
         },

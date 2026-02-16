@@ -61,11 +61,11 @@ export default function CreateDownload() {
     queryKey: ["custom_submenus_all"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("custom_submenus")
+        .from("custom_submenus" as any)
         .select("*")
         .order("name");
       if (error) throw error;
-      return data;
+      return data as any[];
     },
   });
 
@@ -73,12 +73,12 @@ export default function CreateDownload() {
     queryKey: ["custom_pages_all"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("custom_pages")
+        .from("custom_pages" as any)
         .select("*")
         .eq("status", "published")
         .order("title");
       if (error) throw error;
-      return data;
+      return data as any[];
     },
   });
 

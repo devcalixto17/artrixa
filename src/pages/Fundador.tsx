@@ -23,7 +23,7 @@ const Fundador = () => {
         queryKey: ["custom-pages"],
         queryFn: async () => {
             const { data, error } = await supabase
-                .from("custom_pages")
+                .from("custom_pages" as any)
                 .select("*")
                 .order("display_order", { ascending: true });
             if (error) throw error;
@@ -36,7 +36,7 @@ const Fundador = () => {
         queryKey: ["custom-submenus"],
         queryFn: async () => {
             const { data, error } = await supabase
-                .from("custom_submenus")
+                .from("custom_submenus" as any)
                 .select(`
                     *,
                     parent:custom_pages(title)
@@ -50,7 +50,7 @@ const Fundador = () => {
     // Delete Page Mutation
     const deletePageMutation = useMutation({
         mutationFn: async (id: string) => {
-            const { error } = await supabase.from("custom_pages").delete().eq("id", id);
+            const { error } = await supabase.from("custom_pages" as any).delete().eq("id", id);
             if (error) throw error;
         },
         onSuccess: () => {
@@ -65,7 +65,7 @@ const Fundador = () => {
     // Delete Submenu Mutation
     const deleteSubmenuMutation = useMutation({
         mutationFn: async (id: string) => {
-            const { error } = await supabase.from("custom_submenus").delete().eq("id", id);
+            const { error } = await supabase.from("custom_submenus" as any).delete().eq("id", id);
             if (error) throw error;
         },
         onSuccess: () => {
