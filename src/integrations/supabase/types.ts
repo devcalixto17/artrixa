@@ -119,6 +119,48 @@ export type Database = {
           },
         ]
       }
+      custom_pages: {
+        Row: {
+          content: string | null
+          created_at: string | null
+          display_order: number | null
+          id: string
+          is_pinned_header: boolean | null
+          is_system: boolean | null
+          slug: string
+          status: string | null
+          system_path: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          is_pinned_header?: boolean | null
+          is_system?: boolean | null
+          slug: string
+          status?: string | null
+          system_path?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          is_pinned_header?: boolean | null
+          is_system?: boolean | null
+          slug?: string
+          status?: string | null
+          system_path?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       custom_roles: {
         Row: {
           color: string | null
@@ -148,6 +190,54 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      custom_submenus: {
+        Row: {
+          created_at: string | null
+          display_order: number | null
+          id: string
+          name: string
+          parent_page_id: string | null
+          parent_submenu_id: string | null
+          slug: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          name: string
+          parent_page_id?: string | null
+          parent_submenu_id?: string | null
+          slug: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          name?: string
+          parent_page_id?: string | null
+          parent_submenu_id?: string | null
+          slug?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_submenus_parent_page_id_fkey"
+            columns: ["parent_page_id"]
+            isOneToOne: false
+            referencedRelation: "custom_pages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "custom_submenus_parent_submenu_id_fkey"
+            columns: ["parent_submenu_id"]
+            isOneToOne: false
+            referencedRelation: "custom_submenus"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       download_tracking: {
         Row: {
@@ -184,6 +274,7 @@ export type Database = {
           category_id: string | null
           commands: string | null
           created_at: string
+          custom_page_id: string | null
           description: string | null
           download_count: number | null
           download_url: string | null
@@ -191,6 +282,7 @@ export type Database = {
           image_url: string | null
           media_urls: string[] | null
           status: string
+          submenu_id: string | null
           title: string
           updated_at: string
           video_url: string | null
@@ -200,6 +292,7 @@ export type Database = {
           category_id?: string | null
           commands?: string | null
           created_at?: string
+          custom_page_id?: string | null
           description?: string | null
           download_count?: number | null
           download_url?: string | null
@@ -207,6 +300,7 @@ export type Database = {
           image_url?: string | null
           media_urls?: string[] | null
           status?: string
+          submenu_id?: string | null
           title: string
           updated_at?: string
           video_url?: string | null
@@ -216,6 +310,7 @@ export type Database = {
           category_id?: string | null
           commands?: string | null
           created_at?: string
+          custom_page_id?: string | null
           description?: string | null
           download_count?: number | null
           download_url?: string | null
@@ -223,6 +318,7 @@ export type Database = {
           image_url?: string | null
           media_urls?: string[] | null
           status?: string
+          submenu_id?: string | null
           title?: string
           updated_at?: string
           video_url?: string | null
@@ -233,6 +329,20 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "downloads_custom_page_id_fkey"
+            columns: ["custom_page_id"]
+            isOneToOne: false
+            referencedRelation: "custom_pages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "downloads_submenu_id_fkey"
+            columns: ["submenu_id"]
+            isOneToOne: false
+            referencedRelation: "custom_submenus"
             referencedColumns: ["id"]
           },
         ]

@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Layout } from "@/components/layout/Layout";
 import { DownloadCard } from "@/components/cards/DownloadCard";
 import { Skeleton } from "@/components/ui/skeleton";
+import { usePagination } from "@/hooks/usePagination";
+import { PaginationControls } from "@/components/PaginationControls";
 
 const Category = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -16,7 +18,6 @@ const Category = () => {
         .select("*")
         .eq("slug", slug)
         .single();
-
       if (error) throw error;
       return data;
     },
@@ -32,14 +33,12 @@ const Category = () => {
         .eq("category_id", category!.id)
         .eq("status", "approved")
         .order("created_at", { ascending: false });
-
       if (error) throw error;
       return data;
     },
     enabled: !!category?.id,
   });
 
-  // Fetch author profiles separately
   const authorIds = downloads?.map(d => d.author_id).filter(Boolean) || [];
   const { data: authorProfiles } = useQuery({
     queryKey: ["author-profiles", authorIds],
@@ -49,7 +48,6 @@ const Category = () => {
         .from("profiles")
         .select("user_id, username, avatar_url")
         .in("user_id", authorIds);
-
       if (error) throw error;
       return data;
     },
@@ -59,12 +57,10 @@ const Category = () => {
   const getAuthorInfo = (authorId: string | null) => {
     if (!authorId || !authorProfiles) return { username: "Anônimo", avatar_url: null };
     const profile = authorProfiles.find(p => p.user_id === authorId);
-    return {
-      username: profile?.username || "Usuário",
-      avatar_url: profile?.avatar_url || null
-    };
+    return { username: profile?.username || "Usuário", avatar_url: profile?.avatar_url || null };
   };
 
+  const { currentPage, totalPages, paginatedItems, goToPage } = usePagination(downloads);
   const isLoading = categoryLoading || downloadsLoading;
 
   return (
@@ -86,30 +82,33 @@ const Category = () => {
 
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(8)].map((_, i) => (
+            {[...Array(9)].map((_, i) => (
               <Skeleton key={i} className="h-64 rounded-lg" />
             ))}
           </div>
         ) : downloads && downloads.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {downloads.map((download) => {
-              const authorInfo = getAuthorInfo(download.author_id);
-              return (
-                <DownloadCard
-                  key={download.id}
-                  id={download.id}
-                  title={download.title}
-                  imageUrl={download.image_url}
-                  description={download.description}
-                  authorUserId={download.author_id}
-                  authorName={authorInfo.username}
-                  authorAvatar={authorInfo.avatar_url}
-                  createdAt={download.created_at}
-                  downloadCount={download.download_count}
-                />
-              );
-            })}
-          </div>
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {paginatedItems.map((download) => {
+                const authorInfo = getAuthorInfo(download.author_id);
+                return (
+                  <DownloadCard
+                    key={download.id}
+                    id={download.id}
+                    title={download.title}
+                    imageUrl={download.image_url}
+                    description={download.description}
+                    authorUserId={download.author_id}
+                    authorName={authorInfo.username}
+                    authorAvatar={authorInfo.avatar_url}
+                    createdAt={download.created_at}
+                    downloadCount={download.download_count}
+                  />
+                );
+              })}
+            </div>
+            <PaginationControls currentPage={currentPage} totalPages={totalPages} onPageChange={goToPage} />
+          </>
         ) : (
           <div className="text-center py-16">
             <p className="text-muted-foreground text-lg">

@@ -10,20 +10,18 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Download, Eye } from "lucide-react";
 import { Link } from "react-router-dom";
 import { DownloadCard } from "@/components/cards/DownloadCard";
+import { usePagination } from "@/hooks/usePagination";
+import { PaginationControls } from "@/components/PaginationControls";
 
 const CustomPage = () => {
     const { slug, parentSlug, subSlug, grandParentSlug } = useParams();
-
-    // Resolve which slug to use for the query
-    // The active slug is always the last segment of our dynamic routes
     const activeSlug = subSlug || slug || parentSlug;
 
     const { data: pageData, isLoading, error } = useQuery({
         queryKey: ["custom-page", activeSlug],
         queryFn: async () => {
-            // First check if it's a main page
-            const { data: page, error: pageError } = await supabase
-                .from("custom_pages")
+            const { data: page } = await supabase
+                .from("custom_pages" as any)
                 .select("*")
                 .eq("slug", activeSlug)
                 .eq("status", "published")
@@ -31,13 +29,9 @@ const CustomPage = () => {
 
             if (page) return { ...(page as object), type: 'page' } as any;
 
-            // If not found, check if it's a submenu
-            const { data: submenu, error: submenuError } = await supabase
-                .from("custom_submenus")
-                .select(`
-          *,
-          parent:custom_pages(*)
-        `)
+            const { data: submenu } = await supabase
+                .from("custom_submenus" as any)
+                .select(`*, parent:custom_pages(*)`)
                 .eq("slug", activeSlug)
                 .maybeSingle();
 
@@ -50,7 +44,6 @@ const CustomPage = () => {
         enabled: !!activeSlug,
     });
 
-    // Fetch Sidebar Data (Categories & Most Downloaded)
     const { data: categories } = useQuery({
         queryKey: ["categories"],
         queryFn: async () => {
@@ -74,31 +67,21 @@ const CustomPage = () => {
         },
     });
 
-    // Fetch related downloads if it's a submenu or page
     const { data: relatedDownloads, isLoading: linkedDownloadsLoading } = useQuery({
         queryKey: ["related-downloads", activeSlug, pageData?.id],
         queryFn: async () => {
             if (!pageData?.id) return [];
 
-            const field = pageData.type === 'submenu' ? 'submenu_id' : 'category_id';
-
-            // Note: If it's a page, we check if there's a category with the same slug
             let query = supabase
                 .from("downloads")
-                .select(`
-                    *,
-                    categories(name)
-                `)
+                .select(`*, categories(name)`)
                 .eq("status", "approved")
                 .order("created_at", { ascending: false });
 
             if (pageData.type === 'submenu') {
                 query = query.eq("submenu_id", pageData.id);
             } else {
-                // Check if it's linked directly to this page
                 query = query.eq("custom_page_id", pageData.id);
-
-                // Also check if there's a category with the same slug (legacy support)
                 const { data: cat } = await supabase.from("categories").select("id").eq("slug", activeSlug).maybeSingle();
                 if (cat) {
                     query = query.or(`custom_page_id.eq.${pageData.id},category_id.eq.${cat.id}`);
@@ -109,7 +92,6 @@ const CustomPage = () => {
             if (error) throw error;
             if (!data || data.length === 0) return [];
 
-            // Fetch profiles separately (proven pattern)
             const authorIds = [...new Set(data.map(d => d.author_id).filter(Boolean))] as string[];
             if (authorIds.length > 0) {
                 const { data: profiles } = await supabase
@@ -128,6 +110,8 @@ const CustomPage = () => {
         },
         enabled: !!pageData?.id,
     });
+
+    const { currentPage, totalPages, paginatedItems, goToPage } = usePagination(relatedDownloads);
 
     if (isLoading) {
         return (
@@ -156,7 +140,6 @@ const CustomPage = () => {
             <main className="flex-1 container mx-auto px-4 py-8">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
-                    {/* Main Content */}
                     <div className="lg:col-span-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
                         <div className="space-y-4">
                             <h1 className="text-4xl font-display font-black text-foreground tracking-tight uppercase border-l-4 border-primary pl-4">
@@ -166,7 +149,6 @@ const CustomPage = () => {
                                 <div dangerouslySetInnerHTML={{ __html: content }} />
                             </div>
 
-                            {/* Related Downloads Section */}
                             {relatedDownloads && relatedDownloads.length > 0 && (
                                 <div className="pt-8 border-t border-border/50">
                                     <h2 className="text-2xl font-display font-bold text-foreground mb-6 flex items-center gap-2">
@@ -174,7 +156,7 @@ const CustomPage = () => {
                                         PUBLICAÇÕES NESTA CATEGORIA
                                     </h2>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        {relatedDownloads.map((download: any) => (
+                                        {paginatedItems.map((download: any) => (
                                             <DownloadCard
                                                 key={download.id}
                                                 id={download.id}
@@ -190,22 +172,20 @@ const CustomPage = () => {
                                             />
                                         ))}
                                     </div>
+                                    <PaginationControls currentPage={currentPage} totalPages={totalPages} onPageChange={goToPage} />
                                 </div>
                             )}
                         </div>
                     </div>
 
-                    {/* Sidebar */}
                     <aside className="lg:col-span-4 space-y-8 animate-in fade-in slide-in-from-right-4 duration-700 delay-200">
-
-                        {/* Categories */}
                         <section className="space-y-4">
                             <h2 className="text-xl font-display font-bold text-foreground flex items-center gap-2">
                                 <span className="w-2 h-6 bg-primary rounded-full" />
                                 CATEGORIAS
                             </h2>
                             <div className="grid grid-cols-1 gap-2">
-                                {categories?.map((cat) => (
+                                {categories?.map((cat: any) => (
                                     <Link
                                         key={cat.id}
                                         to={`/categoria/${cat.slug}`}
@@ -218,14 +198,13 @@ const CustomPage = () => {
                             </div>
                         </section>
 
-                        {/* Most Downloaded */}
                         <section className="space-y-4">
                             <h2 className="text-xl font-display font-bold text-foreground flex items-center gap-2">
                                 <span className="w-2 h-6 bg-primary rounded-full" />
                                 MAIS BAIXADOS
                             </h2>
                             <div className="space-y-3">
-                                {topDownloads?.map((download) => (
+                                {topDownloads?.map((download: any) => (
                                     <Link key={download.id} to={`/download/${download.id}`}>
                                         <Card className="bg-secondary/30 border-border/50 hover:bg-secondary/50 transition-all group overflow-hidden">
                                             <CardContent className="p-3 flex gap-3">
@@ -247,7 +226,6 @@ const CustomPage = () => {
                                 ))}
                             </div>
                         </section>
-
                     </aside>
                 </div>
             </main>

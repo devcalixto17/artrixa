@@ -9,6 +9,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Search, Puzzle, User, Target, Wrench, Map as MapIcon, Settings, Plus, FileText } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { usePagination } from "@/hooks/usePagination";
+import { PaginationControls } from "@/components/PaginationControls";
 
 const iconMap: Record<string, React.ElementType> = {
   Puzzle,
@@ -33,9 +35,8 @@ export default function Downloads() {
         .from("categories")
         .select("*")
         .order("name");
-
       if (error) throw error;
-      return data;
+      return data as any[];
     },
   });
 
@@ -43,11 +44,11 @@ export default function Downloads() {
     queryKey: ["custom_submenus_all"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("custom_submenus")
+        .from("custom_submenus" as any)
         .select("*")
         .order("name");
       if (error) throw error;
-      return data;
+      return data as any[];
     },
   });
 
@@ -55,12 +56,12 @@ export default function Downloads() {
     queryKey: ["custom_pages_all"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("custom_pages")
+        .from("custom_pages" as any)
         .select("*")
         .eq("status", "published")
         .order("title");
       if (error) throw error;
-      return data;
+      return data as any[];
     },
   });
 
@@ -116,6 +117,11 @@ export default function Downloads() {
     },
   });
 
+  const { currentPage, totalPages, paginatedItems, goToPage, resetPage } = usePagination(downloads);
+
+  // Reset page when filters change
+  useEffect(() => { resetPage(); }, [selectedCategory, searchQuery]);
+
   useEffect(() => {
     if (searchQuery) {
       setSearchParams({ search: searchQuery });
@@ -165,7 +171,7 @@ export default function Downloads() {
             >
               Todos
             </Button>
-            {categories?.map((category) => {
+            {categories?.map((category: any) => {
               const IconComponent = iconMap[category.icon || "Puzzle"] || Puzzle;
               const val = `cat:${category.id}`;
               return (
@@ -181,7 +187,7 @@ export default function Downloads() {
                 </Button>
               );
             })}
-            {submenus?.map((sub) => {
+            {submenus?.map((sub: any) => {
               const val = `sub:${sub.id}`;
               return (
                 <Button
@@ -216,7 +222,7 @@ export default function Downloads() {
 
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(8)].map((_, i) => (
+            {[...Array(9)].map((_, i) => (
               <div key={i} className="space-y-3">
                 <Skeleton className="h-48 w-full rounded-lg" />
                 <Skeleton className="h-4 w-3/4" />
@@ -231,23 +237,26 @@ export default function Downloads() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {downloads?.map((download) => (
-              <DownloadCard
-                key={download.id}
-                id={download.id}
-                title={download.title}
-                description={download.description}
-                imageUrl={download.image_url}
-                downloadCount={download.download_count}
-                createdAt={download.created_at}
-                categoryName={download.categories?.name || (download.custom_submenus as any)?.name || (download.custom_pages as any)?.title}
-                authorName={download.author?.username}
-                authorAvatar={download.author?.avatar_url}
-                authorUserId={download.author_id}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {paginatedItems.map((download: any) => (
+                <DownloadCard
+                  key={download.id}
+                  id={download.id}
+                  title={download.title}
+                  description={download.description}
+                  imageUrl={download.image_url}
+                  downloadCount={download.download_count}
+                  createdAt={download.created_at}
+                  categoryName={download.categories?.name || download.custom_submenus?.name || download.custom_pages?.title}
+                  authorName={download.author?.username}
+                  authorAvatar={download.author?.avatar_url}
+                  authorUserId={download.author_id}
+                />
+              ))}
+            </div>
+            <PaginationControls currentPage={currentPage} totalPages={totalPages} onPageChange={goToPage} />
+          </>
         )}
       </div>
     </Layout>

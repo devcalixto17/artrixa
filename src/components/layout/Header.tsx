@@ -138,7 +138,7 @@ export const Header = () => {
     queryKey: ["site-navigation"],
     queryFn: async () => {
       const { data: pages, error: pageError } = await supabase
-        .from("custom_pages")
+        .from("custom_pages" as any)
         .select("*")
         .eq("is_pinned_header", true)
         .eq("status", "published")
@@ -148,7 +148,7 @@ export const Header = () => {
       if (!pages) return [];
 
       const { data: submenus, error: subError } = await supabase
-        .from("custom_submenus")
+        .from("custom_submenus" as any)
         .select("*")
         .in("parent_page_id", (pages as any[]).map(p => p.id))
         .order("display_order", { ascending: true });
