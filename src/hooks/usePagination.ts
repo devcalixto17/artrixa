@@ -18,6 +18,7 @@ export function usePagination<T>(items: T[] | undefined | null, perPage = ITEMS_
 
   const goToPage = (page: number) => {
     setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const resetPage = () => setCurrentPage(1);
