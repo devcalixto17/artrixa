@@ -20,6 +20,7 @@ import NotFound from "./pages/NotFound";
 import Banned from "./pages/Banned";
 import Skins from "./pages/Skins";
 import VipArea from "./pages/VipArea";
+import Suggestions from "./pages/Suggestions";
 
 const queryClient = new QueryClient();
 
@@ -57,6 +58,7 @@ const App = () => (
               <Route path="/banned" element={<Banned />} />
               <Route path="/skins" element={<Skins />} />
               <Route path="/vip" element={<VipArea />} />
+              <Route path="/sugestoes" element={<Suggestions />} />
 
 
               {/* Rotas Dinâmicas de Páginas e Submenus */}
