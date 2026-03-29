@@ -51,6 +51,11 @@ export const Footer = () => {
                   Skins de Armas
                 </Link>
               </li>
+              <li>
+                <Link to="/sugestoes" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                  Sugestões
+                </Link>
+              </li>
             </ul>
           </div>
 

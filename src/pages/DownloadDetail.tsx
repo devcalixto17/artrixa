@@ -20,7 +20,7 @@ import {
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useState } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { ImageLightbox } from "@/components/ImageLightbox";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { CommentSection } from "@/components/comments/CommentSection";
@@ -37,7 +37,8 @@ export default function DownloadDetail() {
     return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
   };
   const { id } = useParams<{ id: string }>();
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -253,6 +254,7 @@ export default function DownloadDetail() {
   }
 
   const mediaUrls = (downloadData.media_urls as string[]) || [];
+  const allImages = [downloadData.image_url, ...mediaUrls].filter(Boolean) as string[];
 
   return (
     <Layout>
@@ -289,7 +291,7 @@ export default function DownloadDetail() {
             {downloadData.image_url && (
               <div
                 className="relative w-full rounded-lg overflow-hidden cursor-pointer"
-                onClick={() => setSelectedImage(downloadData.image_url)}
+                onClick={() => { setLightboxIndex(0); setLightboxOpen(true); }}
               >
                 <img
                   src={downloadData.image_url}
@@ -359,7 +361,7 @@ export default function DownloadDetail() {
                       <div
                         key={index}
                         className="aspect-video rounded-lg overflow-hidden cursor-pointer"
-                        onClick={() => setSelectedImage(url)}
+                        onClick={() => { const idx = allImages.indexOf(url); setLightboxIndex(idx >= 0 ? idx : 0); setLightboxOpen(true); }}
                       >
                         <img
                           src={url}
@@ -469,18 +471,8 @@ export default function DownloadDetail() {
           <CommentSection downloadId={id!} />
         </div>
 
-        {/* Image Modal */}
-        <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
-          <DialogContent className="max-w-4xl p-0">
-            {selectedImage && (
-              <img
-                src={selectedImage}
-                alt="Preview"
-                className="w-full h-auto rounded-lg"
-              />
-            )}
-          </DialogContent>
-        </Dialog>
+        {/* Image Lightbox */}
+        <ImageLightbox images={allImages} initialIndex={lightboxIndex} open={lightboxOpen} onClose={() => setLightboxOpen(false)} />
       </div>
     </Layout>
   );
