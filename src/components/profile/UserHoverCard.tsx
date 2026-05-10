@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { User, Calendar, Award, Trophy, Star, Crown, Shield, Sparkles } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { LightningText } from "./LightningText";
 
 const iconMap: Record<string, React.ComponentType<any>> = {
   Award, Trophy, Star, Crown, Shield, Sparkles,
@@ -119,9 +120,15 @@ export const UserHoverCard = ({ userId, children }: UserHoverCardProps) => {
           <div className="space-y-1 flex-1">
             <Link
               to={`/profile/${userId}`}
-              className="text-sm font-semibold hover:text-primary transition-colors" // Revertido para cor padrão
+              className="text-sm font-semibold hover:text-primary transition-colors"
             >
-              {profile?.username || "Usuário"}
+              {sortedRoles.includes("fundador") ? (
+                <LightningText color="#ef4444">
+                  {profile?.username || "Usuário"}
+                </LightningText>
+              ) : (
+                profile?.username || "Usuário"
+              )}
             </Link>
             <div className="flex flex-wrap gap-1">
               {sortedRoles
@@ -130,7 +137,11 @@ export const UserHoverCard = ({ userId, children }: UserHoverCardProps) => {
                   const rc = roleConfig[r] || roleConfig.user;
                   return (
                     <Badge key={r} variant="secondary" className={`text-xs ${rc.color}`}>
-                      {rc.label}
+                      {r === "fundador" ? (
+                        <LightningText color="#ef4444">{rc.label}</LightningText>
+                      ) : (
+                        rc.label
+                      )}
                     </Badge>
                   );
                 })}

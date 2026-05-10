@@ -1,5 +1,6 @@
 import { Crown, Shield, Star, User, Gem, UserCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { LightningText } from "./LightningText";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -157,7 +158,11 @@ export const RoleBadge = ({ role, userId, showHighestOnly = true }: RoleBadgePro
               className={`${config.baseClass} gap-1.5 px-3 py-1.5 text-sm font-semibold z-10`}
             >
               <Icon className="w-4 h-4" />
-              {config.label}
+              {currentRole === "fundador" ? (
+                <LightningText color="#ef4444">{config.label}</LightningText>
+              ) : (
+                config.label
+              )}
             </Badge>
           </div>
         );

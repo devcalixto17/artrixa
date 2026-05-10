@@ -5,6 +5,7 @@ import { ptBR } from "date-fns/locale";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useMemo } from "react";
 import { UserHoverCard } from "@/components/profile/UserHoverCard";
+import { FundadorName } from "@/components/profile/FundadorName";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -117,7 +118,11 @@ export const DownloadCard = ({
                     <User className="h-3 w-3" />
                   </AvatarFallback>
                 </Avatar>
-                <span className="truncate">{authorName || "Usuário"}</span>
+                <span className="truncate">
+                  <FundadorName userId={authorUserId} roles={userRole ? [userRole] : undefined}>
+                    {authorName || "Usuário"}
+                  </FundadorName>
+                </span>
               </Link>
             </UserHoverCard>
           ) : (

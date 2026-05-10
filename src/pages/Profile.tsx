@@ -1,4 +1,5 @@
 import { Layout } from "@/components/layout/Layout";
+import { LightningText } from "@/components/profile/LightningText";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -153,7 +154,11 @@ const Profile = () => {
 
               <div className="text-center sm:text-left space-y-3 flex-1">
                 <h1 className="text-2xl font-display font-bold text-foreground">
-                  {profile.username || "Usuário"}
+                  {role === "fundador" ? (
+                    <LightningText color="#ef4444">{profile.username || "Usuário"}</LightningText>
+                  ) : (
+                    profile.username || "Usuário"
+                  )}
                 </h1>
 
                 <RoleBadge role={role} />
