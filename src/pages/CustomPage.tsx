@@ -1,23 +1,19 @@
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
+import { Layout } from "@/components/layout/Layout";
 import { Skeleton } from "@/components/ui/skeleton";
 import NotFound from "./NotFound";
-import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Download, Eye } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Download } from "lucide-react";
 import { DownloadCard } from "@/components/cards/DownloadCard";
 import { usePagination } from "@/hooks/usePagination";
 import { PaginationControls } from "@/components/PaginationControls";
 
 const CustomPage = () => {
-    const { slug, parentSlug, subSlug, grandParentSlug } = useParams();
+    const { slug, parentSlug, subSlug } = useParams();
     const activeSlug = subSlug || slug || parentSlug;
 
-    const { data: pageData, isLoading, error } = useQuery({
+    const { data: pageData, isLoading } = useQuery({
         queryKey: ["custom-page", activeSlug],
         queryFn: async () => {
             const { data: page } = await supabase
@@ -44,30 +40,7 @@ const CustomPage = () => {
         enabled: !!activeSlug,
     });
 
-    const { data: categories } = useQuery({
-        queryKey: ["categories"],
-        queryFn: async () => {
-            const { data, error } = await supabase.from("categories").select("*").order("name");
-            if (error) throw error;
-            return data as any[];
-        },
-    });
-
-    const { data: topDownloads } = useQuery({
-        queryKey: ["top-downloads"],
-        queryFn: async () => {
-            const { data, error } = await supabase
-                .from("downloads")
-                .select("*")
-                .eq("status", "approved")
-                .order("download_count", { ascending: false })
-                .limit(5);
-            if (error) throw error;
-            return data as any[];
-        },
-    });
-
-    const { data: relatedDownloads, isLoading: linkedDownloadsLoading } = useQuery({
+    const { data: relatedDownloads } = useQuery({
         queryKey: ["related-downloads", activeSlug, pageData?.id],
         queryFn: async () => {
             if (!pageData?.id) return [];
@@ -115,14 +88,10 @@ const CustomPage = () => {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-background flex flex-col">
-                <Header />
-                <div className="flex-1 container mx-auto px-4 py-8">
-                    <Skeleton className="h-12 w-3/4 mb-6" />
-                    <Skeleton className="h-[400px] w-full" />
-                </div>
-                <Footer />
-            </div>
+            <Layout>
+                <Skeleton className="h-12 w-3/4 mb-6" />
+                <Skeleton className="h-[400px] w-full" />
+            </Layout>
         );
     }
 
@@ -134,104 +103,45 @@ const CustomPage = () => {
     const content = pageData.type === 'page' ? pageData.content : `Página de submenu: ${pageData.name}`;
 
     return (
-        <div className="min-h-screen bg-background flex flex-col">
-            <Header />
-
-            <main className="flex-1 container mx-auto px-4 py-8">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-
-                    <div className="lg:col-span-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                        <div className="space-y-4">
-                            <h1 className="text-4xl font-display font-black text-foreground tracking-tight uppercase border-l-4 border-primary pl-4">
-                                {title}
-                            </h1>
-                            <div className="prose prose-invert max-w-none bg-secondary/20 p-6 rounded-xl border border-border/50">
-                                <div dangerouslySetInnerHTML={{ __html: content }} />
-                            </div>
-
-                            {relatedDownloads && relatedDownloads.length > 0 && (
-                                <div className="pt-8 border-t border-border/50">
-                                    <h2 className="text-2xl font-display font-bold text-foreground mb-6 flex items-center gap-2">
-                                        <Download className="w-6 h-6 text-primary" />
-                                        PUBLICAÇÕES NESTA CATEGORIA
-                                    </h2>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        {paginatedItems.map((download: any) => (
-                                            <DownloadCard
-                                                key={download.id}
-                                                id={download.id}
-                                                title={download.title}
-                                                description={download.description}
-                                                imageUrl={download.image_url}
-                                                downloadCount={download.download_count}
-                                                createdAt={download.created_at}
-                                                categoryName={download.categories?.name || pageData.name}
-                                                authorName={download.profiles?.username}
-                                                authorAvatar={download.profiles?.avatar_url}
-                                                authorUserId={download.author_id}
-                                            />
-                                        ))}
-                                    </div>
-                                    <PaginationControls currentPage={currentPage} totalPages={totalPages} onPageChange={goToPage} />
-                                </div>
-                            )}
-                        </div>
+        <Layout>
+            <div className="space-y-8">
+                <div className="space-y-4">
+                    <h1 className="text-4xl font-display font-black text-foreground tracking-tight uppercase border-l-4 border-primary pl-4">
+                        {title}
+                    </h1>
+                    <div className="prose prose-invert max-w-none bg-secondary/20 p-6 rounded-xl border border-border/50">
+                        <div dangerouslySetInnerHTML={{ __html: content }} />
                     </div>
-
-                    <aside className="lg:col-span-4 space-y-8 animate-in fade-in slide-in-from-right-4 duration-700 delay-200">
-                        <section className="space-y-4">
-                            <h2 className="text-xl font-display font-bold text-foreground flex items-center gap-2">
-                                <span className="w-2 h-6 bg-primary rounded-full" />
-                                CATEGORIAS
-                            </h2>
-                            <div className="grid grid-cols-1 gap-2">
-                                {categories?.map((cat: any) => (
-                                    <Link
-                                        key={cat.id}
-                                        to={`/categoria/${cat.slug}`}
-                                        className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 border border-border hover:border-primary/50 hover:bg-secondary transition-all group"
-                                    >
-                                        <span className="font-medium group-hover:text-primary transition-colors uppercase text-sm tracking-wide">{cat.name}</span>
-                                        <Download className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                                    </Link>
-                                ))}
-                            </div>
-                        </section>
-
-                        <section className="space-y-4">
-                            <h2 className="text-xl font-display font-bold text-foreground flex items-center gap-2">
-                                <span className="w-2 h-6 bg-primary rounded-full" />
-                                MAIS BAIXADOS
-                            </h2>
-                            <div className="space-y-3">
-                                {topDownloads?.map((download: any) => (
-                                    <Link key={download.id} to={`/download/${download.id}`}>
-                                        <Card className="bg-secondary/30 border-border/50 hover:bg-secondary/50 transition-all group overflow-hidden">
-                                            <CardContent className="p-3 flex gap-3">
-                                                <div className="w-16 h-16 rounded overflow-hidden shrink-0 border border-border/50">
-                                                    <img src={download.image_url} alt={download.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <h3 className="font-bold text-sm text-foreground truncate group-hover:text-primary transition-colors">{download.title}</h3>
-                                                    <div className="flex items-center gap-2 mt-1 text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
-                                                        <span className="flex items-center gap-1">
-                                                            <Eye className="w-3 h-3" />
-                                                            {download.download_count || 0}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
-                                    </Link>
-                                ))}
-                            </div>
-                        </section>
-                    </aside>
                 </div>
-            </main>
 
-            <Footer />
-        </div>
+                {relatedDownloads && relatedDownloads.length > 0 && (
+                    <div className="pt-4 border-t border-border/50">
+                        <h2 className="text-2xl font-display font-bold text-foreground mb-6 flex items-center gap-2">
+                            <Download className="w-6 h-6 text-primary" />
+                            PUBLICAÇÕES NESTA CATEGORIA
+                        </h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {paginatedItems.map((download: any) => (
+                                <DownloadCard
+                                    key={download.id}
+                                    id={download.id}
+                                    title={download.title}
+                                    description={download.description}
+                                    imageUrl={download.image_url}
+                                    downloadCount={download.download_count}
+                                    createdAt={download.created_at}
+                                    categoryName={download.categories?.name || pageData.name}
+                                    authorName={download.profiles?.username}
+                                    authorAvatar={download.profiles?.avatar_url}
+                                    authorUserId={download.author_id}
+                                />
+                            ))}
+                        </div>
+                        <PaginationControls currentPage={currentPage} totalPages={totalPages} onPageChange={goToPage} />
+                    </div>
+                )}
+            </div>
+        </Layout>
     );
 };
 
