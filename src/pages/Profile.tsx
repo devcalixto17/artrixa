@@ -1,4 +1,5 @@
 import { Layout } from "@/components/layout/Layout";
+import { LightningText } from "@/components/profile/LightningText";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";

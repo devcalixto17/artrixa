@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { FundadorName } from "@/components/profile/FundadorName";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
