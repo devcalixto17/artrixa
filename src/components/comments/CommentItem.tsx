@@ -150,7 +150,9 @@ export const CommentItem = React.memo(({
           <div className="flex items-center justify-between mb-1">
             <UserHoverCard userId={comment.user_id}>
               <span className="font-medium text-sm cursor-pointer hover:text-primary transition-colors">
-                {comment.profile?.username || "Usuário"}
+                <FundadorName userId={comment.user_id}>
+                  {comment.profile?.username || "Usuário"}
+                </FundadorName>
               </span>
             </UserHoverCard>
             <span className="text-xs text-muted-foreground flex items-center gap-1">
