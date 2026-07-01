@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- TODO: Set the document title to the name of your application -->
+  <title>Butterfly GaminG</title>
+  <meta name="description" content="Um Site Para Sua comunidade Gaming CS 1.6">
+  <meta name="author" content="Butterfly" />
+
+  <!-- TODO: Update og:title to match your application name -->
+
+
+  <meta property="og:type" content="website" />
+  <meta property="og:image"
+    content="https://storage.googleapis.com/gpt-engineer-file-uploads/84SIDtJfLbXmtjt0gj4DEoEgjQX2/social-images/social-1770671797222-Gemini_Generated_Image_ergs56ergs56ergs_(1).png">
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@ButterflyMODS" />
+  <meta name="twitter:image"
+    content="https://storage.googleapis.com/gpt-engineer-file-uploads/84SIDtJfLbXmtjt0gj4DEoEgjQX2/social-images/social-1768266383396-girlseboys.png">
+  <meta property="og:title" content="Butterfly GaminG">
+  <meta name="twitter:title" content="Butterfly GaminG">
+  <meta property="og:description" content="Um Site Para Sua comunidade Gaming CS 1.6">
+  <meta name="twitter:description" content="Um Site Para Sua comunidade Gaming CS 1.6">
+
+  <!-- Aplica o tema antes do React montar para evitar "piscada" de cor -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem("site-theme");
+        var theme = saved || "dark";
+        var root = document.documentElement;
+        var bg = "0 0% 3%", fg = "0 0% 98%";
+        if (theme === "light") { bg = "0 0% 98%"; fg = "220 15% 15%"; }
+        root.setAttribute("data-theme", theme);
+        root.style.setProperty("--background", bg);
+        root.style.setProperty("--foreground", fg);
+        root.style.backgroundColor = "hsl(" + bg + ")";
+      } catch (e) { }
+    })();
+  </script>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
+</html>

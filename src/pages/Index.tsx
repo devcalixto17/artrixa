@@ -1,0 +1,92 @@
+import { Layout } from "@/components/layout/Layout";
+import { HeroSection } from "@/components/home/HeroSection";
+import { DownloadCard } from "@/components/cards/DownloadCard";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { usePagination } from "@/hooks/usePagination";
+import { PaginationControls } from "@/components/PaginationControls";
+
+const Index = () => {
+  const { data: downloads, isLoading } = useQuery({
+    queryKey: ["recent-downloads"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("downloads")
+        .select("*, categories(name), custom_submenus:submenu_id(name), custom_pages:custom_page_id(title)")
+        .eq("status", "approved")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        const authorIds = [...new Set(data.map(d => d.author_id).filter(Boolean))];
+
+        if (authorIds.length > 0) {
+          const { data: profiles } = await supabase
+            .from("profiles")
+            .select("user_id, username, avatar_url")
+            .in("user_id", authorIds);
+
+          const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
+
+          return data.map(download => ({
+            ...download,
+            author: download.author_id ? profileMap.get(download.author_id) : null
+          }));
+        }
+      }
+
+      return data?.map(d => ({ ...d, author: null })) || [];
+    },
+  });
+
+  const { currentPage, totalPages, paginatedItems, goToPage } = usePagination(downloads);
+
+  return (
+    <Layout>
+      <HeroSection />
+
+      <section>
+        <h2 className="font-display text-2xl font-bold text-primary mb-6">
+          Últimos Downloads
+        </h2>
+
+        {isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-80 bg-card animate-pulse rounded-lg" />
+            ))}
+          </div>
+        ) : downloads && downloads.length > 0 ? (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {paginatedItems.map((download: any) => (
+                <DownloadCard
+                  key={download.id}
+                  id={download.id}
+                  title={download.title}
+                  description={download.description}
+                  imageUrl={download.image_url}
+                  downloadCount={download.download_count || 0}
+                  createdAt={download.created_at}
+                  categoryName={download.categories?.name ||
+                    download.custom_submenus?.name ||
+                    download.custom_pages?.title}
+                  authorName={download.author?.username}
+                  authorAvatar={download.author?.avatar_url}
+                  authorUserId={download.author_id}
+                />
+              ))}
+            </div>
+            <PaginationControls currentPage={currentPage} totalPages={totalPages} onPageChange={goToPage} />
+          </>
+        ) : (
+          <div className="text-center py-12 bg-card rounded-lg border border-border">
+            <p className="text-muted-foreground">Nenhum download disponível ainda.</p>
+          </div>
+        )}
+      </section>
+    </Layout>
+  );
+};
+
+export default Index;
