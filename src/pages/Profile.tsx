@@ -70,8 +70,7 @@ const Profile = () => {
         .from("downloads")
         .select("*, categories(name), custom_submenus:submenu_id(name), custom_pages:custom_page_id(title)")
         .eq("author_id", userId)
-        .order("created_at", { ascending: false })
-        .limit(5);
+        .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
     },
@@ -209,12 +208,12 @@ const Profile = () => {
           </Card>
         </div>
 
-        {/* Recent Activity */}
+        {/* All Posts */}
         <Card className="bg-card border-border">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-foreground">
               <Clock className="w-5 h-5 text-primary" />
-              Atividade Recente
+              Todos os Posts
             </CardTitle>
           </CardHeader>
           <CardContent>
