@@ -84,14 +84,14 @@ export default function CreateDownload() {
     },
   });
 
-  // Fetch featured submenus (ZOMBIE and CLASSIC)
+  // Fetch featured submenus (ZOMBIE, CLASSIC and GLOBAL)
   const { data: featuredSubmenus } = useQuery({
     queryKey: ["featured_submenus"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("custom_submenus" as any)
         .select(`*, parent:custom_pages(slug)`)
-        .in("slug", ["zombie", "classic"])
+        .in("slug", ["zombie", "classic", "global"])
         .order("name");
       if (error) throw error;
       return (data as any[]) || [];
@@ -339,21 +339,14 @@ export default function CreateDownload() {
 
               {/* Commands */}
               <div className="space-y-2">
-                <Label htmlFor="commands">Comandos (⌨️ Opcional)</Label>
-                <div className="relative">
-                  <textarea
-                    id="commands"
-                    value={commands}
-                    onChange={(e) => setCommands(e.target.value)}
-                    placeholder="// Exemplo de comandos:&#10;amx_help&#10;say /money"
-                    className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 font-mono shadow-inner"
-                  />
-                  <div className="absolute bottom-2 right-2 text-[10px] text-muted-foreground bg-background/50 px-1 rounded">
-                    Estilo Código
-                  </div>
-                </div>
+                <Label>Comandos (⌨️ Opcional)</Label>
+                <RichTextEditor
+                  value={commands}
+                  onChange={setCommands}
+                  placeholder="// Exemplo de comandos:&#10;amx_help&#10;say /money&#10;&#10;Você pode formatar o texto, mudar cores, fontes e tamanhos"
+                />
                 <p className="text-[11px] text-muted-foreground">
-                  Insira um comando por linha.
+                  Você pode formatar os comandos com cores, tamanhos e estilos diferentes.
                 </p>
               </div>
 

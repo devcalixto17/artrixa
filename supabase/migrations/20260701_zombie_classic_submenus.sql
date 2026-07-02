@@ -35,3 +35,18 @@ AND NOT EXISTS (
   SELECT 1 FROM custom_submenus cs 
   WHERE cs.slug = 'classic' AND cs.parent_page_id = cp.id
 );
+
+-- Create GLOBAL submenu under Plugins page
+INSERT INTO custom_submenus (name, slug, parent_page_id, display_order, created_at)
+SELECT 
+  'GLOBAL',
+  'global',
+  cp.id,
+  2,
+  NOW()
+FROM custom_pages cp
+WHERE cp.slug = 'plugins'
+AND NOT EXISTS (
+  SELECT 1 FROM custom_submenus cs 
+  WHERE cs.slug = 'global' AND cs.parent_page_id = cp.id
+);
