@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { User, Calendar, Download, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -16,11 +17,13 @@ import { UserBadges } from "@/components/profile/UserBadges";
 import { NotificationsSection } from "@/components/profile/NotificationsSection";
 import { SendMessageDialog } from "@/components/profile/SendMessageDialog";
 import { useAuth } from "@/hooks/useAuth";
+import { useState } from "react";
 
 const Profile = () => {
   const { userId } = useParams<{ userId: string }>();
   const { user } = useAuth();
   const isOwnProfile = user?.id === userId;
+  const [displayCount, setDisplayCount] = useState(5);
 
   const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ["profile", userId],
@@ -216,7 +219,7 @@ const Profile = () => {
               Todos os Posts
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-6">
             {downloadsLoading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[1, 2, 3].map((i) => (
@@ -224,25 +227,40 @@ const Profile = () => {
                 ))}
               </div>
             ) : userDownloads && userDownloads.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {userDownloads.map((download) => (
-                  <DownloadCard
-                    key={download.id}
-                    id={download.id}
-                    title={download.title}
-                    description={download.description}
-                    imageUrl={download.image_url}
-                    downloadCount={download.download_count || 0}
-                    createdAt={download.created_at}
-                    categoryName={download.categories?.name ||
-                      (download as any).custom_submenus?.name ||
-                      (download as any).custom_pages?.title}
-                    authorName={profile.username}
-                    authorAvatar={profile.avatar_url}
-                    authorUserId={profile.user_id}
-                  />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {userDownloads.slice(0, displayCount).map((download) => (
+                    <DownloadCard
+                      key={download.id}
+                      id={download.id}
+                      title={download.title}
+                      description={download.description}
+                      imageUrl={download.image_url}
+                      downloadCount={download.download_count || 0}
+                      createdAt={download.created_at}
+                      categoryName={download.categories?.name ||
+                        (download as any).custom_submenus?.name ||
+                        (download as any).custom_pages?.title}
+                      authorName={profile.username}
+                      authorAvatar={profile.avatar_url}
+                      authorUserId={profile.user_id}
+                    />
+                  ))}
+                </div>
+                
+                {/* Ver Mais Button */}
+                {userDownloads.length > 5 && displayCount < userDownloads.length && (
+                  <div className="flex justify-center pt-4">
+                    <Button
+                      onClick={() => setDisplayCount(prev => prev + 5)}
+                      variant="outline"
+                      className="w-full sm:w-auto"
+                    >
+                      Ver Mais Posts
+                    </Button>
+                  </div>
+                )}
+              </>
             ) : (
               <div className="text-center py-8">
                 <Download className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
