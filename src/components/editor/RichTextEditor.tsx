@@ -56,6 +56,7 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
   }, [value]);
 
   const execCommand = useCallback((command: string, value?: string) => {
+    editorRef.current?.focus();
     document.execCommand(command, false, value);
     if (editorRef.current) {
       onChange(editorRef.current.innerHTML);
@@ -69,35 +70,35 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
   }, [onChange]);
 
   const applyColor = (color: string) => {
+    editorRef.current?.focus();
     execCommand("foreColor", color);
   };
 
   const applyFontSize = (size: string) => {
-    // Use CSS instead of deprecated fontSize command
+    editorRef.current?.focus();
     const selection = window.getSelection();
     if (selection && selection.rangeCount > 0) {
       const range = selection.getRangeAt(0);
       if (!range.collapsed) {
+        const fragment = range.extractContents();
         const span = document.createElement("span");
         span.style.fontSize = size;
-        try {
-          range.surroundContents(span);
-          if (editorRef.current) {
-            onChange(editorRef.current.innerHTML);
-          }
-        } catch (e) {
-          // If surroundContents fails, use execCommand as fallback
-          execCommand("fontSize", "7");
+        span.appendChild(fragment);
+        range.insertNode(span);
+        if (editorRef.current) {
+          onChange(editorRef.current.innerHTML);
         }
       }
     }
   };
 
   const applyFontFamily = (font: string) => {
+    editorRef.current?.focus();
     execCommand("fontName", font);
   };
 
   const applyLink = () => {
+    editorRef.current?.focus();
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
       alert("Selecione uma palavra ou trecho de texto primeiro.");
