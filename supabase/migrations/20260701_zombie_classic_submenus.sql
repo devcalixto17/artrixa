@@ -1,5 +1,13 @@
--- Add featured_submenu_id column to downloads table
-ALTER TABLE downloads ADD COLUMN featured_submenu_id UUID REFERENCES custom_submenus(id) ON DELETE SET NULL;
+-- Add featured_submenu_id column to downloads table (if it doesn't exist)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name = 'downloads' AND column_name = 'featured_submenu_id'
+  ) THEN
+    ALTER TABLE downloads ADD COLUMN featured_submenu_id UUID REFERENCES custom_submenus(id) ON DELETE SET NULL;
+  END IF;
+END $$;
 
 -- Create Plugins page if it doesn't exist
 INSERT INTO custom_pages (title, slug, content, status, created_at)
