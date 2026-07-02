@@ -36,6 +36,7 @@ export default function EditDownload() {
   const [selectedSubmenuId, setSelectedSubmenuId] = useState("");
   const [selectedPageId, setSelectedPageId] = useState("");
   const [selectValue, setSelectValue] = useState("");
+  const [featuredSubmenuId, setFeaturedSubmenuId] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState("");
   const [downloadType, setDownloadType] = useState<"link" | "file">("link");
   const [downloadUrl, setDownloadUrl] = useState("");
@@ -91,6 +92,7 @@ export default function EditDownload() {
       setDownloadUrl(download.download_url || "");
       setVideoUrl(download.video_url || "");
       setMediaUrls((download.media_urls as string[]) || []);
+      setFeaturedSubmenuId((download as any).featured_submenu_id || null);
       // Determine if it's a link or file based on URL pattern
       if (download.download_url?.includes("supabase.co/storage")) {
         setDownloadType("file");
@@ -135,6 +137,20 @@ export default function EditDownload() {
     },
   });
 
+  // Fetch featured submenus (ZOMBIE and CLASSIC)
+  const { data: featuredSubmenus } = useQuery({
+    queryKey: ["featured_submenus"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("custom_submenus" as any)
+        .select(`*, parent:custom_pages(slug)`)
+        .in("slug", ["zombie", "classic"])
+        .order("name");
+      if (error) throw error;
+      return (data as any[]) || [];
+    },
+  });
+
   const uploadFile = async (file: File): Promise<string> => {
     if (!user) throw new Error("Usuário não autenticado");
 
@@ -176,6 +192,7 @@ export default function EditDownload() {
           category_id: selectedCategoryId || null,
           submenu_id: selectedSubmenuId || null,
           custom_page_id: selectedPageId || null,
+          featured_submenu_id: featuredSubmenuId || null,
           image_url: imageUrl || null,
           download_url: finalDownloadUrl || null,
           video_url: videoUrl || null,
@@ -444,6 +461,32 @@ export default function EditDownload() {
                   </SelectContent>
                 </Select>
               </div>
+
+              {/* Featured Submenu (ZOMBIE/CLASSIC) */}
+              {featuredSubmenus && featuredSubmenus.length > 0 && (
+                <div className="space-y-2">
+                  <Label>Página em Destaque (Opcional)</Label>
+                  <Select
+                    value={featuredSubmenuId || "none"}
+                    onValueChange={(val) => setFeaturedSubmenuId(val === "none" ? null : val)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Nenhuma página em destaque" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Nenhuma página em destaque</SelectItem>
+                      {featuredSubmenus.map((sub) => (
+                        <SelectItem key={sub.id} value={sub.id}>
+                          {sub.name.toUpperCase()} - Página de Plugin
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-[11px] text-muted-foreground">
+                    Selecione uma página em destaque para separar melhor as publicações. A publicação ainda aparecerá em todo o site.
+                  </p>
+                </div>
+              )}
 
               {/* Main Image URL */}
               <div className="space-y-2">

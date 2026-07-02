@@ -75,8 +75,16 @@ const CustomPage = () => {
                 .eq("status", "approved")
                 .order("created_at", { ascending: false });
 
+            // Check if this is a featured submenu (ZOMBIE or CLASSIC)
+            const isFeaturedSubmenu = ["zombie", "classic"].includes(pageData.slug || "");
+
             if (pageData.type === 'submenu') {
-                query = query.eq("submenu_id", pageData.id);
+                // If it's a featured submenu, filter by featured_submenu_id
+                if (isFeaturedSubmenu) {
+                    query = query.eq("featured_submenu_id", pageData.id);
+                } else {
+                    query = query.eq("submenu_id", pageData.id);
+                }
             } else {
                 query = query.eq("custom_page_id", pageData.id);
                 const { data: cat } = await supabase.from("categories").select("id").eq("slug", activeSlug).maybeSingle();
