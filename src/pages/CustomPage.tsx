@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Layout } from "@/components/layout/Layout";
@@ -8,9 +8,11 @@ import { Download } from "lucide-react";
 import { DownloadCard } from "@/components/cards/DownloadCard";
 import { usePagination } from "@/hooks/usePagination";
 import { PaginationControls } from "@/components/PaginationControls";
+import { useEffect } from "react";
 
 const CustomPage = () => {
     const { slug, parentSlug, subSlug } = useParams();
+    const navigate = useNavigate();
     const activeSlug = subSlug || slug || parentSlug;
 
     const { data: pageData, isLoading } = useQuery({
@@ -39,6 +41,28 @@ const CustomPage = () => {
         },
         enabled: !!activeSlug,
     });
+
+    // Redireciona para home se página não tiver conteúdo e não tiver URL externa
+    // Redireciona para URL externa se preenchida
+    useEffect(() => {
+        if (pageData && !isLoading) {
+            // Se tiver URL externa, redireciona para ela
+            if (pageData.type === 'page' && pageData.external_url) {
+                window.open(pageData.external_url, '_blank', 'noopener,noreferrer');
+                navigate("/", { replace: true });
+                return;
+            }
+
+            const hasContent = pageData.type === 'page' 
+                ? (pageData.content && pageData.content.trim() !== "") 
+                : true;
+            
+            // Se não tiver conteúdo E não tiver URL externa, redireciona para home
+            if (!hasContent) {
+                navigate("/", { replace: true });
+            }
+        }
+    }, [pageData, isLoading, navigate]);
 
     const { data: relatedDownloads } = useQuery({
         queryKey: ["related-downloads", activeSlug, pageData?.id],
