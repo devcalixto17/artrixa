@@ -81,9 +81,26 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
       const range = selection.getRangeAt(0);
       if (!range.collapsed) {
         const fragment = range.extractContents();
+        
+        // Remove any existing font-size spans
+        const tempDiv = document.createElement("div");
+        tempDiv.appendChild(fragment);
+        
+        const sizeSpans = tempDiv.querySelectorAll("span[style*='font-size']");
+        sizeSpans.forEach((oldSpan) => {
+          while (oldSpan.firstChild) {
+            oldSpan.parentNode?.insertBefore(oldSpan.firstChild, oldSpan);
+          }
+          oldSpan.parentNode?.removeChild(oldSpan);
+        });
+        
+        // Create new span with size
         const span = document.createElement("span");
         span.style.fontSize = size;
-        span.appendChild(fragment);
+        while (tempDiv.firstChild) {
+          span.appendChild(tempDiv.firstChild);
+        }
+        
         range.insertNode(span);
         if (editorRef.current) {
           onChange(editorRef.current.innerHTML);
